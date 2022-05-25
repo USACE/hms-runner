@@ -1,0 +1,23 @@
+target_plugin: hms-runner
+plugin_image_and_tag: williamlehman/hms-runner:v0.0.1
+model_configuration:
+  model_name: "Jan 96 storm"
+  model_configuration_paths:
+  - authority: /tenk/
+    fragment: tenk.hms
+model_links:
+  linked_inputs: []
+  required_outputs: []
+event_config:
+  output_destination:
+    scheme: fake
+    authority: /data/
+  realization:
+    index: 1
+    seed: 1234
+  event:
+    index: 1
+    seed: 5678
+  time_window:
+    starttime: 2018-01-01T01:01:01.000000001Z
+    endtime: 2020-12-31T01:01:01.000000001Z

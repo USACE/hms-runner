@@ -8,10 +8,10 @@ f.readline()
 f.readline()
 modelline = f.readline()
 modelparts = modelline.split(': ')
-modelName = modelparts[1]
+modelName = modelparts[1].rstrip('\n')
 print("model name is " + modelName)
 f.readline()
-path = f.readline().split(': ')[1]
+path = f.readline().split(': ')[1].rstrip('\n')
 project = f.readline().split(': ')[1].split(".")[0]
 OpenProject(project, path)
 Compute(modelName)

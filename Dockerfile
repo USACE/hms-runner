@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 as dev
 ENV TZ=America/New_York
-
+#need to get the jdk.
 RUN apt update
 RUN apt -y install wget
 

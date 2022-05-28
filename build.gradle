@@ -1,0 +1,23 @@
+//The Gradle JVM needs to be Java 1.8. It'll build with anything, but you're gonna run into runtime errors "Java lang no method found" if you dont.
+
+plugins {
+    id 'java-library'
+}
+//Dependency Management
+repositories {
+    mavenCentral()
+    maven {
+        url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
+    }
+}
+
+dependencies {
+}
+
+jar {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+group 'mil.army.usace.hec'
+version '0.0.1'

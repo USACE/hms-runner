@@ -1,0 +1,13 @@
+{
+    "name":"max",
+    "inputs": [{
+        "name": "hydrograph",
+        "parameter": "flow",
+        "format": ".csv"
+    }],
+    "outputs": [{
+        "name": "max",
+        "parameter": "flow",
+        "format": ".csv"
+    }]
+}

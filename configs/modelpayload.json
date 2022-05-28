@@ -1,0 +1,37 @@
+{
+	"target_plugin": "statfinder",
+	"model_configuration": {
+		"model_name": "max",
+		"model_configuration_path": "/workspaces/JavaPlugin/configs/max.json"
+	},
+	"model_links": {
+		"linked_inputs": [{
+			"input": {
+				"name": "hydrograph",
+				"parameter": "flow",
+				"format": ".csv"
+			},
+			"source": {
+				"name": "/workspaces/JavaPlugin/configs/hsm.csv",
+				"parameter": "flow",
+				"format": ".csv"
+			}
+		}],
+		"required_outputs": [{
+			"name": "max",
+			"parameter": "flow",
+			"format": ".csv"
+		}]
+	},
+	"event_config": {
+		"output_destination": "/workspaces/JavaPlugin/testing/",
+		"realization_number": 1,
+		"event_number": 1,
+		"time_window": {
+			"starttime": "2018-01-01T01:01:01.000000001-05:00",
+			"endtime": "2020-12-31T01:01:01.000000001-05:00"
+		},
+		"event_seed": 5678,
+		"realization_seed": 1234
+	}
+}

@@ -1,39 +1,74 @@
 package usace.wat.plugin.utils;
  
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
- 
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
+import com.amazonaws.services.s3.model.S3Object;
 
-public class loader {
-    public static void DownloadFromS3(){
-        //get proper key and secret key from environment variables.
-        String bucket = "your-bucket-name";
-        String key = "Your file.png";
-         
-        S3Client client = S3Client.builder().build();
-         
-        GetObjectRequest request = GetObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(key)
-                        .build();
-         
-        ResponseInputStream<GetObjectResponse> response = client.getObject(request);
-                 
-        BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(key));
-         
-        byte[] buffer = new byte[4096];
-        int bytesRead = -1;
-         
-        while ((bytesRead = response.read(buffer)) !=  -1) {
-            outputStream.write(buffer, 0, bytesRead);
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+
+public class Loader {
+
+    public Loader(){
+        //read environment variables
+    }
+    public void DownloadFromS3(String bucketName, String key, String outputDestination){
+        Regions clientRegion = Regions.DEFAULT_REGION;
+
+        S3Object fullObject = null
+        S3Object objectPortion = null
+        S3Object headerOverrideObject = null;
+        try {
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                    .withRegion(clientRegion)
+                    .withCredentials(new ProfileCredentialsProvider())
+                    .build();
+
+            // Get an object and print its contents.
+            System.out.println("Downloading an object");
+            fullObject = s3Client.getObject(new GetObjectRequest(bucketName, key));
+            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
+            System.out.println("Content: ");
+            //@TODO: Write to output destination.
+            displayTextInputStream(fullObject.getObjectContent());
+
+        } catch (AmazonServiceException e) {
+            // The call was transmitted successfully, but Amazon S3 couldn't process 
+            // it, so it returned an error response.
+            e.printStackTrace();
+        } catch (SdkClientException e) {
+            // Amazon S3 couldn't be contacted for a response, or the client
+            // couldn't parse the response from Amazon S3.
+            e.printStackTrace();
+        } finally {
+            // To ensure that the network connection doesn't remain open, close any open input streams.
+            if (fullObject != null) {
+                fullObject.close();
+            }
+            if (objectPortion != null) {
+                objectPortion.close();
+            }
+            if (headerOverrideObject != null) {
+                headerOverrideObject.close();
+            }
         }
-                             
-        response.close();
-        outputStream.close();
+    }
+    private static void displayTextInputStream(InputStream input) throws IOException {
+        // Read the text input stream one line at a time and display each line.
+        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        System.out.println();
     }
 }

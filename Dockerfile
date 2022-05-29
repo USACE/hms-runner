@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as dev
+FROM  mcr.microsoft.com/openjdk/jdk:17-ubuntu as dev
 ENV TZ=America/New_York
 #need to get the jdk.
 RUN apt update

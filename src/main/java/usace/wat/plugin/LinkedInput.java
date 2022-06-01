@@ -1,5 +1,5 @@
 package usace.wat.plugin;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 public class LinkedInput {
     @JsonProperty
     private Input input;

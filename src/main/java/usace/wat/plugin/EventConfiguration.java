@@ -1,4 +1,5 @@
 package usace.wat.plugin;
+import com.fasterxml.jackson.annotation.JsonProperty;
 public class EventConfiguration {
     @JsonProperty
     private String output_destination;

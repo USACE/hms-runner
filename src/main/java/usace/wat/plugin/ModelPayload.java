@@ -12,6 +12,8 @@ public class ModelPayload {
     @JsonProperty
     private String target_plugin;
     @JsonProperty
+    private String plugin_image_and_tag;
+    @JsonProperty
     private ModelConfiguration model_configuration;
     @JsonProperty
     private ModelLinks[] model_links;
@@ -33,8 +35,8 @@ public class ModelPayload {
         }
         return new ModelPayload();
     }
-    public String ModelFilePath(){
-        return model_configuration.ModelFilePath();
+    public ResourceInfo[] ModelFilePath(){
+        return model_configuration.ModelFilePaths();
     }
     public String ModelName(){
         return model_configuration.ModelName();

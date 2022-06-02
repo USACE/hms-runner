@@ -4,9 +4,9 @@ public class ModelConfiguration {
     @JsonProperty
     private String model_name;
     @JsonProperty
-    private String model_configuration_path;
-    public String ModelFilePath(){
-        return model_configuration_path;
+    private ResourceInfo[] model_configuration_paths;
+    public ResourceInfo[] ModelFilePaths(){
+        return model_configuration_paths;
     }
     public String ModelName(){
         return model_name;

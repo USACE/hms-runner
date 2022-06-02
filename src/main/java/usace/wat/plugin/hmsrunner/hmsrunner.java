@@ -1,5 +1,6 @@
 package usace.wat.plugin.hmsrunner;
 import usace.wat.plugin.*;
+import usace.wat.plugin.utils.Loader;
 
 import java.io.File;
 import hms.model.Project;
@@ -22,7 +23,9 @@ public class hmsrunner  {
         }
         //first arg should be a modelpayload check to see it is
         String filepath = args[0].split("=")[1];
-        //copy payload to local or read it from S3.      
+        //copy payload to local or read it from S3.
+        Loader loader = new Loader();
+        loader.DownloadFromS3("configs", "payload.yml", "/workspaces/hms-runner/payload.yml");      
         //deseralize to objects (looks like payload format has shifted since the objects were made.)
         File f = new File(filepath);
         ModelPayload payload = ModelPayload.readYaml(f);

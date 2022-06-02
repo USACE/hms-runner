@@ -18,17 +18,18 @@ import com.amazonaws.services.s3.model.S3Object;
 
 
 public class Loader {
-
+    private Config _config = new Config();
     public Loader(){
         //read environment variables
+        
     }
     public void DownloadFromS3(String bucketName, String key, String outputDestination){
-        Regions clientRegion = Regions.DEFAULT_REGION;
-
+        Regions clientRegion = Regions.DEFAULT_REGION;//Regions.valueOf(_config.AWS_DEFAULT_REGION);
         S3Object fullObject = null;
         try {
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                     .withRegion(clientRegion)
+                    //.withPathStyleAccessEnabled(_config.S3_FORCE_PATH_STYLE)
                     .withCredentials(new ProfileCredentialsProvider())
                     .build();
 

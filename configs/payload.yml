@@ -1,0 +1,7 @@
+target_plugin: hms-runner
+plugin_image_and_tag: williamlehman/hms-runner:v0.0.1
+model_configuration:
+  model_name: Jan 96 storm
+  model_configuration_paths:
+  - authority: /tenk/
+    fragment: tenk.hms

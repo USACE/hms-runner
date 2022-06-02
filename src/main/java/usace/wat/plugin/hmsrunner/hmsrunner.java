@@ -16,12 +16,15 @@ public class hmsrunner  {
         System.out.println("java.library.path=" + System.getProperty("java.library.path"));
         if(args.length!=1){
             System.out.println("Did not detect only one argument");
-            //return;
+            return;
+        }else{
+            System.out.println(args[0]);
         }
         //first arg should be a modelpayload check to see it is
+        String filepath = args[0].split("=")[1];
         //copy payload to local or read it from S3.      
         //deseralize to objects (looks like payload format has shifted since the objects were made.)
-        File f = new File("/workspaces/hms-runner/example_data/payload.yml");
+        File f = new File(filepath);
         ModelPayload payload = ModelPayload.readYaml(f);
         //check that the plugin name is correct.
         //copy the model to local if not local

@@ -1,5 +1,10 @@
 package usace.wat.plugin.utils;
  
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -7,13 +12,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
 import com.amazonaws.services.s3.model.S3Object;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 
 public class Loader {
@@ -24,8 +23,8 @@ public class Loader {
     public void DownloadFromS3(String bucketName, String key, String outputDestination){
         Regions clientRegion = Regions.DEFAULT_REGION;
 
-        S3Object fullObject = null
-        S3Object objectPortion = null
+        S3Object fullObject = null;
+        S3Object objectPortion = null;
         S3Object headerOverrideObject = null;
         try {
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
@@ -49,16 +48,34 @@ public class Loader {
             // Amazon S3 couldn't be contacted for a response, or the client
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         } finally {
             // To ensure that the network connection doesn't remain open, close any open input streams.
             if (fullObject != null) {
-                fullObject.close();
+                try {
+                    fullObject.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             if (objectPortion != null) {
-                objectPortion.close();
+                try {
+                    objectPortion.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             if (headerOverrideObject != null) {
-                headerOverrideObject.close();
+                try {
+                    headerOverrideObject.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
     }

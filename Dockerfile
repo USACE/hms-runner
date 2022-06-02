@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/openjdk/jdk:11-ubuntu as dev
+FROM hmstesting/ubuntu:ubuntu20.04_openjdk11 as dev
 ENV TZ=America/New_York
 #need to get the jdk.
 RUN apt update
@@ -11,6 +11,7 @@ RUN apt -y install unzip
 RUN unzip /HEC-HMS-4.9/samples.zip -d /
 
 RUN apt -y install git
+RUN apt -y install libgfortran5
 
 #FROM ubuntu:20.04 as prod
 #RUN mkdir -p  /hms 

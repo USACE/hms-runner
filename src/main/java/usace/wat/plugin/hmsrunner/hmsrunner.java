@@ -13,6 +13,7 @@ public class hmsrunner  {
     public static void main(String[] args) {
         System.out.println(PluginName + " says hello.");
         //check the args are greater than 1
+        System.out.println("java.library.path=" + System.getProperty("java.library.path"));
         if(args.length!=1){
             System.out.println("Did not detect only one argument");
             //return;
@@ -25,6 +26,7 @@ public class hmsrunner  {
         //check that the plugin name is correct.
         //copy the model to local if not local
         //compute passing in the event config portion of the model payload
+        System.out.println("preparing to run " + payload.ModelFilePath()[0].getFilePath());
         Project project = Project.open(payload.ModelFilePath()[0].getFilePath());
         project.computeRun(payload.ModelName());
         Hms.shutdownEngine();

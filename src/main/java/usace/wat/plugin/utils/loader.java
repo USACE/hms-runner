@@ -1,6 +1,8 @@
 package usace.wat.plugin.utils;
  
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,8 +26,6 @@ public class Loader {
         Regions clientRegion = Regions.DEFAULT_REGION;
 
         S3Object fullObject = null;
-        S3Object objectPortion = null;
-        S3Object headerOverrideObject = null;
         try {
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                     .withRegion(clientRegion)
@@ -38,7 +38,7 @@ public class Loader {
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             System.out.println("Content: ");
             //@TODO: Write to output destination.
-            displayTextInputStream(fullObject.getObjectContent());
+            writeInputStreamToDisk(fullObject.getObjectContent(), outputDestination);
 
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process 
@@ -61,31 +61,17 @@ public class Loader {
                     e.printStackTrace();
                 }
             }
-            if (objectPortion != null) {
-                try {
-                    objectPortion.close();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-            if (headerOverrideObject != null) {
-                try {
-                    headerOverrideObject.close();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
         }
     }
-    private static void displayTextInputStream(InputStream input) throws IOException {
+    private static void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
         // Read the text input stream one line at a time and display each line.
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputDestination));
         String line = null;
         while ((line = reader.readLine()) != null) {
             System.out.println(line);
+            writer.write(line + "\n");//not sure if that is right.
         }
-        System.out.println();
+        writer.close();
     }
 }

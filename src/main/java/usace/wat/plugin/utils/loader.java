@@ -8,8 +8,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -21,17 +26,43 @@ public class Loader {
     private Config _config = new Config();
     public Loader(){
         //read environment variables
+        //setting by default for now for testing.
+        _config.AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE";
+        _config.AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+        _config.AWS_DEFAULT_REGION = "us_east_1";
+        _config.AWS_S3_REGION = "us_east_1";
+        _config.S3_MOCK = true;
+        _config.S3_ENDPOINT = "http://localhost:9000";
+        _config.S3_FORCE_PATH_STYLE = true;
         
     }
     public void DownloadFromS3(String bucketName, String key, String outputDestination){
-        Regions clientRegion = Regions.DEFAULT_REGION;//Regions.valueOf(_config.AWS_DEFAULT_REGION);
+
+        Regions clientRegion = Regions.valueOf(_config.AWS_DEFAULT_REGION.toUpperCase());
         S3Object fullObject = null;
         try {
-            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                    .withRegion(clientRegion)
-                    //.withPathStyleAccessEnabled(_config.S3_FORCE_PATH_STYLE)
-                    .withCredentials(new ProfileCredentialsProvider())
+            AmazonS3 s3Client = null;
+            if(_config.S3_MOCK){
+                AWSCredentials credentials = new BasicAWSCredentials(_config.AWS_ACCESS_KEY_ID, _config.AWS_SECRET_ACCESS_KEY);
+                ClientConfiguration clientConfiguration = new ClientConfiguration();
+                clientConfiguration.setSignerOverride("AWSS3V4SignerType");
+
+                s3Client = AmazonS3ClientBuilder
+                    .standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(_config.S3_ENDPOINT, clientRegion.name()))
+                    .withPathStyleAccessEnabled(_config.S3_FORCE_PATH_STYLE)
+                    .withClientConfiguration(clientConfiguration)
+                    .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();
+            }else{
+                s3Client = AmazonS3ClientBuilder
+                    .standard()
+                    .withRegion(clientRegion)
+                    //requires credentials to be set via env variables AWS_SECRET_KEY ...
+                    .withCredentials(new ProfileCredentialsProvider())
+                    .build();                
+            }
+
 
             // Get an object and print its contents.
             System.out.println("Downloading an object");

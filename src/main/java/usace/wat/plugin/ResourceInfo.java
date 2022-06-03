@@ -12,4 +12,10 @@ public class ResourceInfo {
     public String getFilePath(){
         return authority + fragment;
     }
+    public String getAuthority(){
+        return authority;
+    }
+    public String getFragment(){
+        return fragment;
+    }
 }

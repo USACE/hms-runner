@@ -10,15 +10,9 @@ import com.fasterxml.jackson.core.JsonParseException;
 
 public class ModelPayload {
     @JsonProperty
-    private String target_plugin;
-    @JsonProperty
-    private String plugin_image_and_tag;
-    @JsonProperty
     private ModelConfiguration model_configuration;
     @JsonProperty
-    private ModelLinks[] model_links;
-    @JsonProperty
-    private EventConfiguration event_config;
+    private ModelLinks model_links;
     public static ModelPayload readYaml(final File file) {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
         try {
@@ -35,11 +29,17 @@ public class ModelPayload {
         }
         return new ModelPayload();
     }
-    public ResourceInfo[] ModelFilePath(){
-        return model_configuration.ModelFilePaths();
+    public LinkedDataDescription[] Inputs(){
+        return model_links.getLinked_inputs();
+    }
+    public LinkedDataDescription[] Outputs(){
+        return model_links.getRequired_outputs();
     }
     public String ModelName(){
         return model_configuration.ModelName();
+    }
+    public String ModelAlternative(){
+        return model_configuration.ModelAlternative();
     }
 }
 

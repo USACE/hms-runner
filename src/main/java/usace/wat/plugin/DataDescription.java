@@ -1,6 +1,6 @@
 package usace.wat.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
-public class Input {
+public class DataDescription {
     @JsonProperty
     private String name;
     @JsonProperty

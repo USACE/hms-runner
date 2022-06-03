@@ -1,7 +1,111 @@
-target_plugin: hms-runner
-plugin_image_and_tag: williamlehman/hms-runner:v0.0.1
 model_configuration:
-  model_name: Jan 96 storm
-  model_configuration_paths:
-  - authority: /configs
-    fragment: /models/tenk/tenk.hms
+  model_name: tenk
+  model_alternative: Jan 96 storm
+model_links:
+  linked_inputs:
+  - name: tenk.hms
+    parameter: project file
+    format: hms
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.hms
+  - name: hrap.dss
+    parameter: dss file
+    format: dss
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/hrap.dss
+  - name: hrapcells
+    parameter: cells
+    format: blank
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/hrapcells
+  - name: regions/hrapcells
+    parameter: cells
+    format: blank
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/regions/hrapcells
+  - name: Jan_96.control
+    parameter: control file
+    format: control
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/Jan_96.control
+  - name: Stage3_HRAP.met
+    parameter: meterologic model
+    format: met
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/Stage3_HRAP.met
+  - name: Tenk_1.basin
+    parameter: basin model
+    format: basin
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/Tenk_1.basin
+  - name: tenk.dss
+    parameter: dss file
+    format: dss
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.dss
+  - name: tenk.gage
+    parameter: gage file
+    format: gage
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.gage
+  - name: tenk.grid
+    parameter: grid file
+    format: grid
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.grid
+  - name: tenk.regn
+    parameter: region file
+    format: regn
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.regn
+  - name: tenk.pdata
+    parameter: pdata file
+    format: pdata
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.pdata
+  - name: tenk.run
+    parameter: run file
+    format: run
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /models/tenk/tenk.run
+  required_outputs:
+  - name: RUN_Jan_96_storm.results
+    parameter: results file
+    format: xml
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /runs/tenk/RUN_Jan_96_storm.results
+  - name: Jan_96_storm.dss
+    parameter: dss file
+    format: dss
+    resource_info:
+      scheme: s3
+      authority: configs
+      fragment: /runs/tenk/Jan_96_storm.dss

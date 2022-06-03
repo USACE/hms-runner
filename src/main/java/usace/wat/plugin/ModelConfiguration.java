@@ -4,11 +4,11 @@ public class ModelConfiguration {
     @JsonProperty
     private String model_name;
     @JsonProperty
-    private ResourceInfo[] model_configuration_paths;
-    public ResourceInfo[] ModelFilePaths(){
-        return model_configuration_paths;
-    }
+    private String model_alternative;
     public String ModelName(){
         return model_name;
+    }
+    public String ModelAlternative(){
+        return model_alternative;
     }
 }

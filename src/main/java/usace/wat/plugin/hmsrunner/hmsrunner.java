@@ -36,27 +36,16 @@ public class hmsrunner  {
         //check that the plugin name is correct.
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
-        String modelOutputDestination = "/workspaces/hms-runner/run/model/tenk/";
+        String modelOutputDestination = "/workspaces/hms-runner/run/model/"+payload.ModelName()+"/";
         //manually putting this in until we improve the payload to list all files
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.hms",modelOutputDestination + "tenk.hms");
-        loader.DownloadFromS3(bucket, "/models/tenk/hrap.dss",modelOutputDestination + "hrap.dss");
-        loader.DownloadFromS3(bucket, "/models/tenk/hrapcells",modelOutputDestination + "hrapcells");
-        loader.DownloadFromS3(bucket, "/models/tenk/regions/hrapcells",modelOutputDestination + "/regions/hrapcells");
-        loader.DownloadFromS3(bucket, "/models/tenk/Jan_96.control",modelOutputDestination + "Jan_96.control");
-        loader.DownloadFromS3(bucket, "/models/tenk/Stage3_HRAP.met",modelOutputDestination + "Stage3_HRAP.met");
-        loader.DownloadFromS3(bucket, "/models/tenk/Tenk_1.basin",modelOutputDestination + "Tenk_1.basin");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.dss",modelOutputDestination + "tenk.dss");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.gage",modelOutputDestination + "tenk.gage");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.grid",modelOutputDestination + "tenk.grid");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.pdata",modelOutputDestination + "tenk.pdata");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.regn",modelOutputDestination + "tenk.regn");
-        loader.DownloadFromS3(bucket, "/models/tenk/tenk.run",modelOutputDestination + "tenk.run");
-
+        for (LinkedDataDescription input : payload.Inputs()) {
+            loader.DownloadFromS3(input.getResourceInfo().getAuthority(), input.getResourceInfo().getFragment(),modelOutputDestination + input.getName());
+        }      
         //compute passing in the event config portion of the model payload
-        String hmsFile = modelOutputDestination + "tenk.hms";
+        String hmsFile = modelOutputDestination + payload.ModelName() + ".hms";
         System.out.println("preparing to run " + hmsFile);
         Project project = Project.open(hmsFile);
-        project.computeRun(payload.ModelName());
+        project.computeRun(payload.ModelAlternative());
         Hms.shutdownEngine();
     }
 }

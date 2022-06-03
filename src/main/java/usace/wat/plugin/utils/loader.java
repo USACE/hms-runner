@@ -32,7 +32,7 @@ public class Loader {
         _config.AWS_DEFAULT_REGION = "us_east_1";
         _config.AWS_S3_REGION = "us_east_1";
         _config.S3_MOCK = true;
-        _config.S3_ENDPOINT = "http://localhost:9000";
+        _config.S3_ENDPOINT = "http://host.docker.internal:9000";
         _config.S3_FORCE_PATH_STYLE = true;
         
     }

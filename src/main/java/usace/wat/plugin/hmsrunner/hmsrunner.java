@@ -25,9 +25,10 @@ public class hmsrunner  {
         String filepath = args[0].split("=")[1];
         //copy payload to local or read it from S3.
         Loader loader = new Loader();
-        loader.DownloadFromS3("configs", "payload.yml", "/workspaces/hms-runner/payload.yml");      
+        String outputDestination = "/workspaces/hms-runner/payload.yml";
+        loader.DownloadFromS3("configs", "payload.yml", outputDestination);      
         //deseralize to objects (looks like payload format has shifted since the objects were made.)
-        File f = new File(filepath);
+        File f = new File(outputDestination);
         ModelPayload payload = ModelPayload.readYaml(f);
         //check that the plugin name is correct.
         //copy the model to local if not local

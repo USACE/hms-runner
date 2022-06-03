@@ -2,10 +2,13 @@ package usace.wat.plugin.utils;
  
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -68,7 +71,7 @@ public class Loader {
             System.out.println("Downloading an object");
             fullObject = s3Client.getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            System.out.println("Content: ");
+            //System.out.println("Content: ");
             //@TODO: Write to output destination.
             writeInputStreamToDisk(fullObject.getObjectContent(), outputDestination);
 
@@ -97,13 +100,16 @@ public class Loader {
     }
     private static void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
         // Read the text input stream one line at a time and display each line.
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputDestination));
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-            writer.write(line + "\n");//not sure if that is right.
+        
+        String[] fileparts = outputDestination.split("/");
+        String fileName = fileparts[fileparts.length-1];
+        String directory = outputDestination.replace(fileName,"");
+        File f = new File(directory);
+        if(!f.exists()){
+            f.mkdirs();
         }
-        writer.close();
+        byte[] bytes = input.readAllBytes();
+        OutputStream os = new FileOutputStream(new File(outputDestination));
+        os.write(bytes);
     }
 }

@@ -95,7 +95,7 @@ model_links:
       authority: configs
       fragment: /models/tenk/tenk.run
   required_outputs:
-  - name: RUN_Jan_96_storm.results
+  - name: results/RUN_Jan_96_storm.results
     parameter: results file
     format: xml
     resource_info:

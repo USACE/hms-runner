@@ -1,17 +1,14 @@
 package usace.wat.plugin.utils;
  
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.SdkBaseException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -22,11 +19,14 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 
 public class Loader {
     private Config _config = new Config();
+    private AmazonS3 _client = null;
     public Loader(){
         //read environment variables
         //setting by default for now for testing.
@@ -37,12 +37,9 @@ public class Loader {
         _config.S3_MOCK = true;
         _config.S3_ENDPOINT = "http://host.docker.internal:9000";
         _config.S3_FORCE_PATH_STYLE = true;
-        
-    }
-    public void DownloadFromS3(String bucketName, String key, String outputDestination){
+
 
         Regions clientRegion = Regions.valueOf(_config.AWS_DEFAULT_REGION.toUpperCase());
-        S3Object fullObject = null;
         try {
             AmazonS3 s3Client = null;
             if(_config.S3_MOCK){
@@ -65,16 +62,7 @@ public class Loader {
                     .withCredentials(new ProfileCredentialsProvider())
                     .build();                
             }
-
-
-            // Get an object and print its contents.
-            System.out.println("Downloading an object");
-            fullObject = s3Client.getObject(new GetObjectRequest(bucketName, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            //System.out.println("Content: ");
-            //@TODO: Write to output destination.
-            writeInputStreamToDisk(fullObject.getObjectContent(), outputDestination);
-
+            _client = s3Client;
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process 
             // it, so it returned an error response.
@@ -83,8 +71,29 @@ public class Loader {
             // Amazon S3 couldn't be contacted for a response, or the client
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
+        }
+        
+    }
+    public void UploadToS3(String bucketName, String objectKey, String objectPath) {
+        try {
+            File file = new File(objectPath);
+            PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey, file);
+            PutObjectResult response = _client.putObject(putOb);
+            System.out.println(response.getETag());
+        } catch (SdkBaseException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public void DownloadFromS3(String bucketName, String key, String outputDestination){
+        S3Object fullObject = null;
+        try {
+            // Get an object and print its contents.
+            System.out.println("Downloading an object");
+            fullObject = _client.getObject(new GetObjectRequest(bucketName, key));
+            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
+            writeInputStreamToDisk(fullObject.getObjectContent(), outputDestination);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            
             e.printStackTrace();
         } finally {
             // To ensure that the network connection doesn't remain open, close any open input streams.
@@ -92,7 +101,6 @@ public class Loader {
                 try {
                     fullObject.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }

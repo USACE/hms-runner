@@ -21,7 +21,7 @@ public class hmsrunner  {
         }else{
             System.out.println(args[0]);
         }
-        //first arg should be a modelpayload check to see it is
+        /*//first arg should be a modelpayload check to see it is
         String filepath = args[0].split("=")[1];
         //copy payload to local or read it from S3.
         //this should come from the payload - 
@@ -52,7 +52,7 @@ public class hmsrunner  {
             loader.UploadToS3(output.getResourceInfo().getAuthority(), output.getResourceInfo().getFragment(),modelOutputDestination + output.getName());
         }
         Hms.shutdownEngine();
-        
+        */
 
     }
 }

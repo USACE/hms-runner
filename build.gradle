@@ -6,6 +6,16 @@ plugins {
 //Dependency Management
 repositories {
     mavenCentral()
+    maven{
+        name = "GitHubPackages"
+        // The url of the repository that contains the published artifacts
+        url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
+        credentials {
+            // The credentials (described in the next section)
+            username = project.findProperty("gpr.user")
+            password = project.findProperty("gpr.key")
+        }
+    }
     maven {
         url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
     }

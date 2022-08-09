@@ -1,7 +1,6 @@
 package usace.wat.plugin.hmsrunner;
-import usace.wat.plugin.*;
-import usace.wat.plugin.utils.Loader;
 
+import usace.wat.plugin.*;
 import java.io.File;
 import hms.model.Project;
 import hms.Hms;
@@ -21,19 +20,11 @@ public class hmsrunner  {
         }else{
             System.out.println(args[0]);
         }
-        /*//first arg should be a modelpayload check to see it is
+        //first arg should be a modelpayload check to see it is
         String filepath = args[0].split("=")[1];
-        //copy payload to local or read it from S3.
-        //this should come from the payload - 
-        String bucket = filepath.split("/")[0];
-        String key = filepath.replaceAll(bucket, "");
-        Loader loader = new Loader();
-        String outputDestination = "/workspaces/hms-runner/run/payload.yml";
-        loader.DownloadFromS3(bucket, key, outputDestination);      
-        //deseralize to objects (looks like payload format has shifted since the objects were made.)
-        File f = new File(outputDestination);
-        ModelPayload payload = ModelPayload.readYaml(f);
-        //check that the plugin name is correct.
+        ModelPayload mp = Utilities.LoadPayload(filepath);
+        //copy payload to local or read it from S3.     
+        /*
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/workspaces/hms-runner/run/model/"+payload.ModelName()+"/";

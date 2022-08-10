@@ -10,10 +10,10 @@ repositories {
         name = "GitHubPackages"
         // The url of the repository that contains the published artifacts
         url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
-        /*credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-        }*/
+        credentials {
+            username = project.findProperty("gpr.user")
+            password = project.findProperty("gpr.key")
+        }
     }
     maven {
         url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
@@ -30,7 +30,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
     implementation files('/HEC-HMS-4.9/hms.jar')
     implementation fileTree(dir: '/HEC-HMS-4.9/lib', include: '*.jar')
-    implementation 'mil.army.usace.hec:wat-java-sdk:0.0.1'
+    implementation 'mil.army.usace.hec:wat-java-sdk:0.0.2'
 }
 /*
 task getNatives(type: Copy){
@@ -41,8 +41,8 @@ task getNatives(type: Copy){
 }
 */
 jar {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 group 'mil.army.usace.hec'

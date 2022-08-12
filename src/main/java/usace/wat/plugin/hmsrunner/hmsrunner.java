@@ -17,7 +17,7 @@ public class hmsrunner  {
     public static void main(String[] args) {
         System.out.println(PluginName + " says hello.");
         //check the args are greater than 1
-        System.out.println("java.library.path=" + System.getProperty("java.library.path"));
+        Utilities.InitalizeFromEnv();
         if(args.length!=1){
             System.out.println("Did not detect only one argument");
             return;

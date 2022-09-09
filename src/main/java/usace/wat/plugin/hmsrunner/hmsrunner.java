@@ -18,19 +18,19 @@ public class hmsrunner  {
         System.out.println(PluginName + " says hello.");
         //check the args are greater than 1
         Utilities.InitalizeFromEnv();
-        if(args.length!=1){
-            System.out.println("Did not detect only one argument");
+        if(args.length!=2){
+            System.out.println("Did not detect only payload `pathtopayload` argument");
             return;
         }else{
             System.out.println(args[0]);
         }
         //first arg should be a modelpayload check to see it is
-        String filepath = args[0].split("=")[1];
+        String filepath = args[1];
         //load payload. 
         ModelPayload mp = Utilities.LoadPayload(filepath);
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
-        String modelOutputDestination = "/workspaces/hms-runner/run/model/"+mp.getModel().getName()+"/";
+        String modelOutputDestination = "/model/"+mp.getModel().getName()+"/";
         //download the payload to list all input files
         Utilities.CopyPayloadInputsLocally(mp, modelOutputDestination);    
         //compute passing in the event config portion of the model payload

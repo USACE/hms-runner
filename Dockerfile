@@ -12,9 +12,3 @@ RUN unzip /HEC-HMS-4.9/samples.zip -d /
 
 RUN apt -y install git
 RUN apt -y install libgfortran5
-
-#FROM ubuntu:20.04 as prod
-#RUN mkdir -p  /hms 
-#COPY --from=dev /HEC-HMS-4.9 /hms
-#COPY --from=dev /workspaces/hms-runner/hmsrunner.py /hms
-#RUN chmod +x /hms/*

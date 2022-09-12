@@ -19,6 +19,9 @@ public class hmsrunner  {
         //check the args are greater than 1
         Utilities.InitalizeFromEnv();
         if(args.length!=2){
+            for(String s : args){
+                System.out.println("arg " + s);
+            }
             System.out.println("Did not detect only payload `pathtopayload` argument");
             return;
         }else{

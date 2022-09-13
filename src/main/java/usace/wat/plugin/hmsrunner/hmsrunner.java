@@ -46,7 +46,7 @@ public class hmsrunner  {
         for(ResourcedFileData i : mp.getInputs()){
             if (i.getFileName().contains(mp.getModel().getName() + ".hms")){
                 //compute passing in the event config portion of the model payload
-                String hmsFile = modelOutputDestination + i.getFileName();
+                String hmsFile = modelOutputDestination + i.getResourceInfo().getPath();
                 System.out.println("preparing to run " + hmsFile);
                 Project project = Project.open(hmsFile);
                 project.computeRun(mp.getModel().getAlternative());
@@ -55,12 +55,6 @@ public class hmsrunner  {
             }
         }
         //walk("/model/");    
-        //compute passing in the event config portion of the model payload
-        String hmsFile = modelOutputDestination + mp.getModel().getName() + ".hms";
-        System.out.println("preparing to run " + hmsFile);
-        Project project = Project.open(hmsFile);
-        project.computeRun(mp.getModel().getAlternative());
-        System.out.println("run completed for " + hmsFile);
         //push results to s3.
         for (ResourcedFileData output : mp.getOutputs()) {
             //ResourceInfo ri = new ResourceInfo();

@@ -18,17 +18,20 @@ public class hmsrunner  {
         System.out.println(PluginName + " says hello.");
         //check the args are greater than 1
         Utilities.InitalizeFromEnv();
-        if(args.length!=2){
+
+        if(args.length!=3){
             for(String s : args){
                 System.out.println("arg " + s);
             }
             System.out.println("Did not detect only payload `pathtopayload` argument");
             return;
         }else{
-            System.out.println(args[0]);
+            for(String s : args){
+                System.out.println("arg " + s);
+            }
         }
         //first arg should be a modelpayload check to see it is
-        String filepath = args[1];
+        String filepath = args[2];
         //load payload. 
         ModelPayload mp = Utilities.LoadPayload(filepath);
         //copy the model to local if not local

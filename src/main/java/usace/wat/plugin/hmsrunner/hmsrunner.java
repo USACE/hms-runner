@@ -43,7 +43,18 @@ public class hmsrunner  {
         String modelOutputDestination = "/model/"+mp.getModel().getName()+"/";
         //download the payload to list all input files
         Utilities.CopyPayloadInputsLocally(mp, modelOutputDestination);
-        walk("/model/");    
+        for(ResourcedFileData i : mp.getInputs()){
+            if (i.getFileName().contains(mp.getModel().getName() + ".hms")){
+                //compute passing in the event config portion of the model payload
+                String hmsFile = modelOutputDestination + i.getFileName();
+                System.out.println("preparing to run " + hmsFile);
+                Project project = Project.open(hmsFile);
+                project.computeRun(mp.getModel().getAlternative());
+                System.out.println("run completed for " + hmsFile);
+                break;
+            }
+        }
+        //walk("/model/");    
         //compute passing in the event config portion of the model payload
         String hmsFile = modelOutputDestination + mp.getModel().getName() + ".hms";
         System.out.println("preparing to run " + hmsFile);
@@ -67,7 +78,7 @@ public class hmsrunner  {
         }
         Hms.shutdownEngine();
     }
-    private static void walk(String dir){
+    /*private static void walk(String dir){
         try (Stream<Path> walk = Files.walk(Paths.get(dir))) {
             // We want to find only regular files
             List<String> result = walk.filter(Files::isRegularFile)
@@ -77,5 +88,5 @@ public class hmsrunner  {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 }

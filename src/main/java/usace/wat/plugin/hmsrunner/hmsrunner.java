@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import hms.model.Project;
 import hms.Hms;
@@ -38,7 +42,8 @@ public class hmsrunner  {
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+mp.getModel().getName()+"/";
         //download the payload to list all input files
-        Utilities.CopyPayloadInputsLocally(mp, modelOutputDestination);    
+        Utilities.CopyPayloadInputsLocally(mp, modelOutputDestination);
+        walk("/model/");    
         //compute passing in the event config portion of the model payload
         String hmsFile = modelOutputDestination + mp.getModel().getName() + ".hms";
         System.out.println("preparing to run " + hmsFile);
@@ -61,5 +66,16 @@ public class hmsrunner  {
             }  
         }
         Hms.shutdownEngine();
+    }
+    private static void walk(String dir){
+        try (Stream<Path> walk = Files.walk(Paths.get(dir))) {
+            // We want to find only regular files
+            List<String> result = walk.filter(Files::isRegularFile)
+                    .map(x -> x.toString()).collect(Collectors.toList());
+
+            result.forEach(System.out::println);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -54,7 +54,7 @@ public class hmsrunner  {
                 break;
             }
         }
-        //walk("/model/");    
+        walk("/model/");    
         //push results to s3.
         for (ResourcedFileData output : mp.getOutputs()) {
             //ResourceInfo ri = new ResourceInfo();
@@ -72,7 +72,7 @@ public class hmsrunner  {
         }
         Hms.shutdownEngine();
     }
-    /*private static void walk(String dir){
+    private static void walk(String dir){
         try (Stream<Path> walk = Files.walk(Paths.get(dir))) {
             // We want to find only regular files
             List<String> result = walk.filter(Files::isRegularFile)
@@ -82,5 +82,5 @@ public class hmsrunner  {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 }

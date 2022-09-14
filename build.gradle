@@ -43,4 +43,4 @@ jar {
 }
 
 group 'mil.army.usace.hec'
-version '0.0.1'
+version '0.0.10'

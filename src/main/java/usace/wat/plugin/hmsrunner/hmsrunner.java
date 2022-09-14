@@ -46,7 +46,7 @@ public class hmsrunner  {
         for(ResourcedFileData i : mp.getInputs()){
             if (i.getFileName().contains(mp.getModel().getName() + ".hms")){
                 //compute passing in the event config portion of the model payload
-                String hmsFile = modelOutputDestination + i.getResourceInfo().getPath();
+                String hmsFile = modelOutputDestination + i.getFileName();
                 System.out.println("preparing to run " + hmsFile);
                 Project project = Project.open(hmsFile);
                 project.computeRun(mp.getModel().getAlternative());

@@ -23,7 +23,7 @@ public class hmsrunner  {
         //check the args are greater than 1
         Utilities.InitalizeFromEnv();
 
-        if(args.length!=3){
+        if(args.length!=2){
             for(String s : args){
                 System.out.println("arg " + s);
             }
@@ -35,7 +35,7 @@ public class hmsrunner  {
             }
         }
         //first arg should be a modelpayload check to see it is
-        String filepath = args[2];
+        String filepath = args[1];
         //load payload. 
         ModelPayload mp = Utilities.LoadPayload(filepath);
         //copy the model to local if not local

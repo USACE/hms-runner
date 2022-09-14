@@ -54,7 +54,8 @@ public class hmsrunner  {
                 break;
             }
         }
-        walk("/model/");    
+        walk("/model/");
+        walk("/model/data/");    
         //push results to s3.
         for (ResourcedFileData output : mp.getOutputs()) {
             //ResourceInfo ri = new ResourceInfo();

@@ -5,7 +5,7 @@ RUN apt update
 RUN apt -y install wget
 
 RUN wget https://www.hec.usace.army.mil/nexus/repository/maven-public/mil/army/usace/hec/hec-hms/4.11-beta.1-linux64/hec-hms-4.11-beta.1-linux64.tar.gz -P /
-RUN tar -xvzf /HEC-HMS-4.11-beta.1-linux64.tar.gz -C /
+RUN tar -xvzf /hec-hms-4.11-beta.1-linux64.tar.gz -C /
 
 RUN apt -y install unzip
 RUN unzip /HEC-HMS-4.11-beta.1/samples.zip -d /

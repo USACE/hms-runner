@@ -36,10 +36,6 @@ jar {
     }
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    
-    from {
-        configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
-    }
 }
 
 group 'mil.army.usace.hec'

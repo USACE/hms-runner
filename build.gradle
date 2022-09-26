@@ -29,8 +29,6 @@ dependencies {
 }
 
 jar {
-    zip64 = true
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes "Main-Class": "usace.wat.plugin.hmsrunner.hmsrunner"
     }

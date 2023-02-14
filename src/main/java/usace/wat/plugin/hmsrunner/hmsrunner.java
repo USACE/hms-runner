@@ -25,7 +25,7 @@ public class hmsrunner  {
         //get Alternative name
         String model_name = (String) mp.getAttributes().get("model_name");
         //get simulation name?
-        String alt_name = (String) mp.getAttributes().get("model_alternative");
+        String simulation_name = (String) mp.getAttributes().get("simulation");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+model_name+"/";
@@ -51,7 +51,7 @@ public class hmsrunner  {
         }    
         System.out.println("preparing to run " + hmsFilePath);
         Project project = Project.open(hmsFilePath);
-        project.computeRun(alt_name);
+        project.computeRun(simulation_name);
         System.out.println("run completed for " + hmsFilePath);
         //push results to s3.
         for (DataSource output : mp.getOutputs()) { 

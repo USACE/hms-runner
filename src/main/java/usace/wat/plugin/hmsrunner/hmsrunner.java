@@ -8,6 +8,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.python.antlr.base.mod;
+
+import hec.heclib.dss.DSSErrorMessage;
+import hec.heclib.dss.HecDataManager;
+import hec.heclib.dss.HecTimeSeries;
+import hec.heclib.util.HecTime;
+import hec.io.TimeSeriesContainer;
 import hms.model.Project;
 import hms.Hms;
 
@@ -37,11 +45,26 @@ public class hmsrunner  {
             if (i.getName().contains(".hms")){
                 //compute passing in the event config portion of the model payload
                 hmsFilePath = modelOutputDestination + i.getName();
-                break;
+                //break;
             }
             byte[] bytes = pm.getFile(i, 0);
             //write bytes locally.
             File f = new File(modelOutputDestination, i.getName());
+            try {
+                if (!f.getParentFile().exists()){
+                    f.getParentFile().mkdirs();
+                }
+                if (!f.createNewFile()){
+                    f.delete();
+                    if(!f.createNewFile()){
+                        System.out.println(f.getPath() + " cant create or delete this location");
+                        return;
+                    }
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             try(FileOutputStream outputStream = new FileOutputStream(f)){
                 outputStream.write(bytes);
             }catch(Exception e){
@@ -56,6 +79,46 @@ public class hmsrunner  {
         //push results to s3.
         for (DataSource output : mp.getOutputs()) { 
             Path path = Paths.get(modelOutputDestination + output.getName());
+            if(output.getName().contains(".dss")){
+                //Path dest = Paths.get(output.getPaths()[0]);//this is the dss file destination... change extension to csv (what if there are many outputs)?
+                int i = 0;
+                StringBuilder flows = new StringBuilder();
+                for(String p : output.getPaths()){
+                    if (i==0){
+                        i++;//skip the actual dss file.
+                    }else{
+                        //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
+                        TimeSeriesContainer tsc = new TimeSeriesContainer();
+                        tsc.fullName = p;
+                        HecTimeSeries reader = new HecTimeSeries();
+                        int status = reader.setDSSFileName(modelOutputDestination + output.getName());
+                        if (status <0){
+                            //panic?
+                            DSSErrorMessage error = reader.getLastError();
+                            error.printMessage();
+                            //return;
+                        }
+                        status = reader.read(tsc,true);
+                        if (status <0){
+                            //panic?
+                            DSSErrorMessage error = reader.getLastError();
+                            error.printMessage();
+                        // return;
+                        }
+                        double[] values = tsc.values;
+                        flows = flows.append(tsc.fullName + "\r\n");
+                        for(double f : values){
+                            flows = flows.append(f);
+                            flows = flows.append("\r\n");
+                        }
+                        i++;                        
+                    }
+                }
+                //write times and values to csv.
+                byte[] flowdata = flows.toString().getBytes();
+                pm.putFile(flowdata, output, 0);
+            }
+            /*
             byte[] data;
             try {
                 data = Files.readAllBytes(path);
@@ -64,6 +127,8 @@ public class hmsrunner  {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }  
+             */
+
         }
         Hms.shutdownEngine();
     }

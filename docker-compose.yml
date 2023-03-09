@@ -21,9 +21,14 @@ services:
     entrypoint: >
       /bin/sh -c "
       /usr/bin/mc config host add minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
-      /usr/bin/mc mb   minio/configs;
-      /usr/bin/mc policy set public minio/configs;
-      /usr/bin/mc cp --recursive /configs/ minio/configs/ ;
+      /usr/bin/mc rb --force  minio/model-library;
+      /usr/bin/mc mb minio/model-library;
+      /usr/bin/mc policy set public minio/model-library;
+      /usr/bin/mc cp --recursive /configs/models/ minio/model-library/;
+      /usr/bin/mc rb --force  minio/cc-store;
+      /usr/bin/mc mb minio/cc-store;
+      /usr/bin/mc policy set public minio/cc-store;
+      /usr/bin/mc cp --recursive /configs/payloads/ minio/cc-store/cc_store/;
       exit 0;
       "
     volumes:

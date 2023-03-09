@@ -1,0 +1,85 @@
+{
+	"attributes": {
+		"model_name": "WhiteRiver_Muncie",
+		"simulation": "Dec2013"
+	},
+	"stores": [{
+		"Name": "FFRD",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"StoreType": "S3",
+		"DsProfile": "FFRD",
+		"Parameters": {
+			"root": "/muncie"
+		},
+		"Session": null
+	}],
+	"inputs": [{
+		"Name": "WhiteRiver_Muncie.grid",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.grid"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "AORC.met",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/AORC.met"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "data/AORC_Dec2013.dss",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/data/AORC_Dec2013.dss"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "Dec_2013.control",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/Dec_2013.control"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie.dss",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.dss"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie.gage",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.gage"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie.hms",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.hms"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie.pdata",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.pdata"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie.run",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie.run"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie_Dec2013.basin",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie_Dec2013.basin"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "WhiteRiver_Muncie_Dec2013.sqlite",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/WhiteRiver_Muncie_Dec2013.sqlite"],
+		"StoreName": "FFRD"
+	}, {
+		"Name": "data/WhiteRiver_USGSGage.dss",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["hms/data/WhiteRiver_USGSGage.dss"],
+		"StoreName": "FFRD"
+	}],
+	"outputs": [{
+		"Name": "Dec2013.dss",
+		"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+		"Paths": ["/runs/{ENV::CC_EVENT_NUMBER}/hms-runner/Dec2013.dss",
+        "//WHITERIVER_GAGEDATA/FLOW/01DEC2013/1HOUR/RUN:DEC2013/"
+        ],
+		"StoreName": "FFRD"
+	}]
+}

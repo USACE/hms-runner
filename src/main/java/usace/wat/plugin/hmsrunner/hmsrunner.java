@@ -107,9 +107,14 @@ public class hmsrunner  {
                         }
                         double[] values = tsc.values;
                         flows = flows.append(tsc.fullName + "\r\n");
+                        double delta = 1.0/24.0;//test with other datasets - probably need to make it dependent on d part.
+                        double timestep = 0;
                         for(double f : values){
-                            flows = flows.append(f);
-                            flows = flows.append("\r\n");
+                            flows = flows.append(timestep)
+                                         .append(",")
+                                         .append(f)
+                                         .append(System.lineSeparator());
+                            timestep += delta;
                         }
                         i++;                        
                     }

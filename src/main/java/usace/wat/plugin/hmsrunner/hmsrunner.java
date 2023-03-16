@@ -37,7 +37,8 @@ public class hmsrunner  {
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+model_name+"/";
-        
+        File dest = new File(modelOutputDestination);
+        deleteDirectory(dest);
         //download the payload to list all input files
         String hmsFilePath = "";
         
@@ -82,6 +83,7 @@ public class hmsrunner  {
             if(output.getName().contains(".dss")){
                 //Path dest = Paths.get(output.getPaths()[0]);//this is the dss file destination... change extension to csv (what if there are many outputs)?
                 int i = 0;
+                double cumulativeFlow = 0.0;
                 StringBuilder flows = new StringBuilder();
                 for(String p : output.getPaths()){
                     if (i==0){
@@ -110,6 +112,7 @@ public class hmsrunner  {
                         double delta = 1.0/24.0;//test with other datasets - probably need to make it dependent on d part.
                         double timestep = 0;
                         for(double f : values){
+                            cumulativeFlow += f;
                             flows = flows.append(timestep)
                                          .append(",")
                                          .append(f)
@@ -120,6 +123,8 @@ public class hmsrunner  {
                     }
                 }
                 //write times and values to csv.
+                System.out.println(flows.toString());
+                System.out.println(cumulativeFlow);
                 byte[] flowdata = flows.toString().getBytes();
                 pm.putFile(flowdata, output, 0);
             }
@@ -137,5 +142,13 @@ public class hmsrunner  {
         }
         Hms.shutdownEngine();
     }
-
+    private static boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
+    }
 }

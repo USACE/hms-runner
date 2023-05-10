@@ -8,11 +8,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
 import hms.model.Project;
+import hms.model.data.SpatialVariableType;
+import hms.model.project.ComputeSpecification;
+
 import hms.Hms;
 
 public class hmsrunner  {
@@ -32,9 +37,9 @@ public class hmsrunner  {
         String simulation_name = (String) mp.getAttributes().get("simulation");
         //get output preference
         Boolean save_dss_file = false;
-        Boolean attribute = (Boolean) mp.getAttributes().get("save_dss_file");
-        if(attribute!=null){
-            save_dss_file = attribute;
+        String attribute = (String)mp.getAttributes().get("save_dss_file");
+        if(attribute!=""){
+            save_dss_file = Boolean.parseBoolean(attribute);
         }
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
@@ -77,12 +82,17 @@ public class hmsrunner  {
         }    
         System.out.println("preparing to run " + hmsFilePath);
         Project project = Project.open(hmsFilePath);
+        ComputeSpecification spec = project.getComputeSpecification(simulation_name);
         project.computeRun(simulation_name);
         System.out.println("run completed for " + hmsFilePath);
         //push results to s3.
         for (DataSource output : mp.getOutputs()) { 
             Path path = Paths.get(modelOutputDestination + output.getName());
+            
             if(output.getName().contains(".dss")){
+                Set<SpatialVariableType> variables = new HashSet<>();
+                variables.add(SpatialVariableType.INC_EXCESS);
+                spec.exportSpatialResults(path.toString(), variables);
                 if(!save_dss_file){
                     //Path dest = Paths.get(output.getPaths()[0]);//this is the dss file destination... change extension to csv (what if there are many outputs)?
                     int i = 0;

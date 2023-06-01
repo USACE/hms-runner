@@ -89,7 +89,19 @@ public class hmsrunner  {
         for (DataSource output : mp.getOutputs()) { 
             Path path = Paths.get(modelOutputDestination + output.getName());
             
-            if(output.getName().contains(".dss")){
+            if(output.getName().contains(".hdf")){
+                Set<SpatialVariableType> variables = new HashSet<>();
+                variables.add(SpatialVariableType.INC_EXCESS);
+                spec.exportSpatialResults(path.toString(), variables);
+                byte[] data;
+                try {
+                    data = Files.readAllBytes(path);
+                    pm.putFile(data, output,0);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } 
+            }else if(output.getName().contains(".dss")){
                 Set<SpatialVariableType> variables = new HashSet<>();
                 variables.add(SpatialVariableType.INC_EXCESS);
                 spec.exportSpatialResults(path.toString(), variables);

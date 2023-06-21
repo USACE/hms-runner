@@ -1,6 +1,6 @@
 package usace.wat.plugin.hmsrunner;
 
-import usace.wat.plugin.*;
+import usace.cc.plugin.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,14 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
-
-import hec.heclib.dss.DSSErrorMessage;
-import hec.heclib.dss.HecTimeSeries;
-import hec.io.TimeSeriesContainer;
 import hms.model.Project;
-import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
 
 import hms.Hms;
@@ -28,19 +21,13 @@ public class hmsrunner  {
     public static void main(String[] args) {
         System.out.println(PluginName + " says hello.");
         //check the args are greater than 1
-        PluginManager pm = new PluginManager();
+        PluginManager pm = PluginManager.getInstance();
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name
         String model_name = (String) mp.getAttributes().get("model_name");
         //get simulation name?
         String simulation_name = (String) mp.getAttributes().get("simulation");
-        //get output preference
-        Boolean save_dss_file = false;
-        String attribute = (String)mp.getAttributes().get("save_dss_file");
-        if(attribute!=""){
-            save_dss_file = Boolean.parseBoolean(attribute);
-        }
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+model_name+"/";
@@ -85,93 +72,39 @@ public class hmsrunner  {
         ComputeSpecification spec = project.getComputeSpecification(simulation_name);
         project.computeRun(simulation_name);
         System.out.println("run completed for " + hmsFilePath);
+        //perform all actions
+        for (Action a : mp.getActions()){
+            pm.LogMessage(new Message(a.getDescription()));
+            switch(a.getName()){
+                case "dss_to_hdf": 
+                    dsstoHdfAction da = new dsstoHdfAction(a);
+                    da.ComputeAction();
+                    break;
+                case "copy_precip_table":
+                    CopyPrecipAction ca = new CopyPrecipAction(a);
+                    ca.ComputeAction();
+                break;
+                case "export_excess_precip":
+                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
+                    ea.ComputeAction();
+                break;
+                default:
+                break;
+            }
+
+        }
         //push results to s3.
+
         for (DataSource output : mp.getOutputs()) { 
             Path path = Paths.get(modelOutputDestination + output.getName());
-            
-            if(output.getName().contains(".hdf")){
-                Set<SpatialVariableType> variables = new HashSet<>();
-                variables.add(SpatialVariableType.INC_EXCESS);
-                spec.exportSpatialResults(path.toString(), variables);
-                byte[] data;
-                try {
-                    data = Files.readAllBytes(path);
-                    pm.putFile(data, output,0);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } 
-            }else if(output.getName().contains(".dss")){
-                Set<SpatialVariableType> variables = new HashSet<>();
-                variables.add(SpatialVariableType.INC_EXCESS);
-                spec.exportSpatialResults(path.toString(), variables);
-                if(!save_dss_file){
-                    //Path dest = Paths.get(output.getPaths()[0]);//this is the dss file destination... change extension to csv (what if there are many outputs)?
-                    int i = 0;
-                    double cumulativeFlow = 0.0;
-                    StringBuilder flows = new StringBuilder();
-                    for(String p : output.getPaths()){
-                        if (i==0){
-                            i++;//skip the actual dss file.
-                        }else{
-                            //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
-                            TimeSeriesContainer tsc = new TimeSeriesContainer();
-                            tsc.fullName = p;
-                            HecTimeSeries reader = new HecTimeSeries();
-                            int status = reader.setDSSFileName(modelOutputDestination + output.getName());
-                            if (status <0){
-                                //panic?
-                                DSSErrorMessage error = reader.getLastError();
-                                error.printMessage();
-                                //return;
-                            }
-                            status = reader.read(tsc,true);
-                            if (status <0){
-                                //panic?
-                                DSSErrorMessage error = reader.getLastError();
-                                error.printMessage();
-                            // return;
-                            }
-                            double[] values = tsc.values;
-                            flows = flows.append(tsc.fullName + "\r\n");
-                            double delta = 1.0/24.0;//test with other datasets - probably need to make it dependent on d part.
-                            double timestep = 0;
-                            for(double f : values){
-                                cumulativeFlow += f;
-                                flows = flows.append(timestep)
-                                            .append(",")
-                                            .append(f)
-                                            .append(System.lineSeparator());
-                                timestep += delta;
-                            }
-                            i++;                        
-                        }
-                    }
-                    //write times and values to csv.
-                    System.out.println(flows.toString());
-                    System.out.println(cumulativeFlow);
-                    byte[] flowdata = flows.toString().getBytes();
-                    pm.putFile(flowdata, output, 0);
-                }else{
-                    byte[] data;
-                    try {
-                        data = Files.readAllBytes(path);
-                        pm.putFile(data, output,0);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } 
-                }
-            }else{
-                byte[] data;
-                try {
-                    data = Files.readAllBytes(path);
-                    pm.putFile(data, output,0);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } 
-            }
+            byte[] data;
+            try {
+                data = Files.readAllBytes(path);
+                pm.putFile(data, output,0);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } 
         }
         Hms.shutdownEngine();
     }

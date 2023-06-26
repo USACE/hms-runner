@@ -83,11 +83,15 @@ public class hmsrunner  {
                 case "copy_precip_table":
                     CopyPrecipAction ca = new CopyPrecipAction(a);
                     ca.ComputeAction();
-                break;
+                    break;
                 case "export_excess_precip":
                     ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
                     ea.ComputeAction();
-                break;
+                    break;
+                case "dss_to_csv":
+                    dsstoCsvAction dca = new dsstoCsvAction(a);
+                    dca.ComputeAction();
+                    break;
                 default:
                 break;
             }

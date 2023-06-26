@@ -28,23 +28,45 @@ public class h5Connection {
         }
     }
     public void copyTo(String srcdatasetName, String destDatasetName, String destFilePath) throws Exception{
-        int destId = HDF5Constants.H5I_INVALID_HID;
         File f = new File(destFilePath);
+        int destId = HDF5Constants.H5I_INVALID_HID;
         if(f.exists()){
-            this.file_id = H5.H5Fopen(destFilePath,
+            destId = H5.H5Fopen(destFilePath,
                     HDF5Constants.H5F_ACC_RDWR,
                     HDF5Constants.H5P_DEFAULT);
 
         } else {
             throw new HDF5Exception(String.format("Unable to open file for copyto: %s",destFilePath));
         }
-        H5.H5Ocopy(file_id,srcdatasetName,destId,destDatasetName,HDF5Constants.H5P_DEFAULT,HDF5Constants.H5P_DEFAULT);
+        //open source dataset
+        int source_id = openDataset(srcdatasetName, this.file_id);
+        //find dimensions to build an array to read.
+        long[] dims = new long[2];
+        long[] maxdims = new long[2];
+        int space_id = H5.H5Dget_space(source_id);
+        H5.H5Sget_simple_extent_dims(space_id, dims, maxdims);
+        long totdems = dims[0]*dims[1];
+        float[] dset = new float[(int)totdems];
+        //int mem_space_id = H5.H5Screate_simple(2, dims, maxdims);
+        //read dataset to an array
+        H5.H5Dread(source_id,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
+        //open destination dataset
+        int dest_id = openDataset(destDatasetName, destId);
+        //write array bytes to destination.
+        H5.H5Dwrite(dest_id, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset);
+        //close resources
+        if(dest_id!=HDF5Constants.H5I_INVALID_HID){
+            H5.H5Dclose(dest_id);
+        }
+        if(source_id!=HDF5Constants.H5I_INVALID_HID){
+            H5.H5Dclose(source_id);
+        }
         if(destId!=HDF5Constants.H5I_INVALID_HID){
             H5.H5Fclose(destId);
         }
     }
     public void write(double[] flows, double[] times, String datasetName) throws Exception{
-        int dataset_id = openDataset(datasetName);
+        int dataset_id = openDataset(datasetName, this.file_id);
         int totlength = flows.length + times.length;
         double[] data = new double[totlength];
         int dataIndex = 0;
@@ -56,14 +78,15 @@ public class h5Connection {
         }
         //check if data fits in the table?
         //dataset exists so we need to write to the dataset.
+        //try catch finally, with a try catch around close
         H5.H5Dwrite(dataset_id, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, data);
         H5.H5Dclose(dataset_id);
     }
-    private int openDataset(String dataset_name) throws Exception{
+    private int openDataset(String dataset_name, int fid) throws Exception{
         int dataset_id = -1;
         if (exists(dataset_name)){
             //logger.info(String.format("Found existing dataset: %s in file.  Opening dataset for write.",dataset_name));
-            dataset_id = H5.H5Dopen(this.file_id, dataset_name, HDF5Constants.H5P_DEFAULT);
+            dataset_id = H5.H5Dopen(fid, dataset_name, HDF5Constants.H5P_DEFAULT);
         } else {
             throw new HDF5Exception(String.format("Unable to open dataset: %s",dataset_name));
         }

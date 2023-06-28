@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
+import hms.model.data.*;
 
 import hms.Hms;
 
@@ -28,6 +29,8 @@ public class hmsrunner  {
         String model_name = (String) mp.getAttributes().get("model_name");
         //get simulation name?
         String simulation_name = (String) mp.getAttributes().get("simulation");
+        //get variant if it exists
+        String variant_name = (String) mp.getAttributes().get("variant");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+model_name+"/";
@@ -67,15 +70,19 @@ public class hmsrunner  {
                 return;
             }
         }    
-        System.out.println("preparing to run " + hmsFilePath);
-        Project project = Project.open(hmsFilePath);
-        ComputeSpecification spec = project.getComputeSpecification(simulation_name);
-        project.computeRun(simulation_name);
-        System.out.println("run completed for " + hmsFilePath);
+ 
         //perform all actions
         for (Action a : mp.getActions()){
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
+                case "compute_forecast":
+                    computeForecastAction cfa = new computeForecastAction(a, simulation_name, variant_name);
+                    cfa.ComputeAction();
+                    break;
+                case "compute_simulation":
+                    computeSimulationAction csa = new computeSimulationAction(a, simulation_name);
+                    csa.ComputeAction();
+                    break;
                 case "dss_to_hdf": 
                     dsstoHdfAction da = new dsstoHdfAction(a);
                     da.ComputeAction();
@@ -85,6 +92,8 @@ public class hmsrunner  {
                     ca.ComputeAction();
                     break;
                 case "export_excess_precip":
+                    Project project = Project.open(hmsFilePath);
+                    ComputeSpecification spec = project.getComputeSpecification(simulation_name);//move to export precip action eventually
                     ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
                     ea.ComputeAction();
                     break;

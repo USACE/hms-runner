@@ -9,18 +9,31 @@
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
-            "args": "-payload=configs/payloads/payload.yml",
-            "env": {}
-        },
-        {
-            "type": "java",
-            "name": "Launch hmsrunner",
-            "request": "launch",
-            "mainClass": "usace.wat.plugin.hmsrunner.hmsrunner",
-            "projectName": "hms-runner",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
-            "args": "-payload=configs/payloads/payload.yml"
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.11-beta.16/bin/gdal:/HEC-HMS-4.11-beta.16/bin:/HEC-HMS-4.11-beta.16/bin/taudem:HEC-HMS-4.11-beta.16/bin/mpi:/HEC-HMS-4.11-beta.16/jre/bin:HEC-HMS-4.11-beta.16/jre/lib/",
+            "args": "",
+            "env": {
+                "GDAL_DATA": "/HEC-HMS-4.11-beta.16/bin/gdal/gdal-data",
+                "PROJ_LIB": "/HEC-HMS-4.11-beta.16/bin/gdal/proj",
+                "CC_AWS_DEFAULT_REGION": "us-east-1",
+                "CC_AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
+                "CC_AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+                "CC_AWS_S3_BUCKET": "cc-store",
+                "CC_ROOT": "cc_store",
+                "CC_MANIFEST_ID": "salt/hms",
+                "CC_EVENT_NUMBER": 51,
+                "CC_S3_ENDPOINT": "host.docker.internal:9000",
+                "CC_S3_MOCK": true,
+                "CC_S3_DISABLE_SSL": true,
+                "CC_S3_FORCE_PATH_STYLE": true,
+                "FFRD_AWS_DEFAULT_REGION": "us-east-1",
+                "FFRD_AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
+                "FFRD_AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+                "FFRD_AWS_S3_BUCKET": "model-library",
+                "FFRD_S3_ENDPOINT": "host.docker.internal:9000",
+                "FFRD_S3_MOCK": true,
+                "FFRD_S3_DISABLE_SSL": true,
+                "FFRD_S3_FORCE_PATH_STYLE": true,
+            }
         }
     ]
 }

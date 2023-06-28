@@ -20,5 +20,6 @@ public class computeForecastAction {
         System.out.println("preparing to run Forecast " + simulation_name + ":" + variant_name);
         project.computeForecast(simulation_name, variant_name);
         System.out.println("Forecast run completed for " + hmsFilePath);
+        project.close();
     }
 }

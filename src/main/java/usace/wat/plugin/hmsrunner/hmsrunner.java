@@ -96,6 +96,7 @@ public class hmsrunner  {
                     ComputeSpecification spec = project.getComputeSpecification(simulation_name);//move to export precip action eventually
                     ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
                     ea.ComputeAction();
+                    project.close();
                     break;
                 case "dss_to_csv":
                     dsstoCsvAction dca = new dsstoCsvAction(a);

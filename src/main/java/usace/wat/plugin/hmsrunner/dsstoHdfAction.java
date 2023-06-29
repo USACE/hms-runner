@@ -12,7 +12,7 @@ public class dsstoHdfAction {
     public dsstoHdfAction(Action a) {
         action = a;
     }
-    public void ComputeAction(){
+    public void computeAction(){
         //find source 
         DataSource source = action.getParameters().get("source");
         //create dss reader
@@ -23,7 +23,7 @@ public class dsstoHdfAction {
             //panic?
             DSSErrorMessage error = reader.getLastError();
             error.printMessage();
-            //return;
+            return;
         }
         //find destination parameter
         DataSource destination = action.getParameters().get("destination");
@@ -32,7 +32,6 @@ public class dsstoHdfAction {
         try {
             writer.open();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return;
         }
@@ -47,7 +46,7 @@ public class dsstoHdfAction {
                     //panic?
                     DSSErrorMessage error = reader.getLastError();
                     error.printMessage();
-                // return;
+                    break;
                 }
                 double[] values = tsc.values;
                 double[] times = new double[values.length];
@@ -63,7 +62,6 @@ public class dsstoHdfAction {
                 try {
                     writer.write(values,times,destination.getDataPaths()[datasetPathIndex]);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                     return;
                 }
@@ -76,9 +74,7 @@ public class dsstoHdfAction {
         try {
             writer.close();
         } catch (HDF5LibraryException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
-            return;
         }
     }
 }

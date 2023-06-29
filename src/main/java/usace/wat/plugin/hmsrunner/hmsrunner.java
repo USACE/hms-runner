@@ -10,30 +10,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
-import hms.model.data.*;
-
 import hms.Hms;
 
 public class hmsrunner  {
-    public static final String PluginName = "hmsrunner";
+    public static final String PLUGINNAME = "hmsrunner";
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println(PluginName + " says hello.");
+        System.out.println(PLUGINNAME + " says hello.");
         //check the args are greater than 1
         PluginManager pm = PluginManager.getInstance();
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name
-        String model_name = (String) mp.getAttributes().get("model_name");
+        String modelName = (String) mp.getAttributes().get("model_name");
         //get simulation name?
-        String simulation_name = (String) mp.getAttributes().get("simulation");
+        String simulationName = (String) mp.getAttributes().get("simulation");
         //get variant if it exists
-        String variant_name = (String) mp.getAttributes().get("variant");
+        String variantName = (String) mp.getAttributes().get("variant");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
-        String modelOutputDestination = "/model/"+model_name+"/";
+        String modelOutputDestination = "/model/"+modelName+"/";
         File dest = new File(modelOutputDestination);
         deleteDirectory(dest);
         //download the payload to list all input files
@@ -43,7 +41,6 @@ public class hmsrunner  {
             if (i.getName().contains(".hms")){
                 //compute passing in the event config portion of the model payload
                 hmsFilePath = modelOutputDestination + i.getName();
-                //break;
             }
             byte[] bytes = pm.getFile(i, 0);
             //write bytes locally.
@@ -60,8 +57,8 @@ public class hmsrunner  {
                     }
                 }
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
+                return;
             }
             try(FileOutputStream outputStream = new FileOutputStream(f)){
                 outputStream.write(bytes);
@@ -76,31 +73,31 @@ public class hmsrunner  {
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
                 case "compute_forecast":
-                    computeForecastAction cfa = new computeForecastAction(a, simulation_name, variant_name);
-                    cfa.ComputeAction();
+                    computeForecastAction cfa = new computeForecastAction(a, simulationName, variantName);
+                    cfa.computeAction();
                     break;
                 case "compute_simulation":
-                    computeSimulationAction csa = new computeSimulationAction(a, simulation_name);
-                    csa.ComputeAction();
+                    computeSimulationAction csa = new computeSimulationAction(a, simulationName);
+                    csa.computeAction();
                     break;
                 case "dss_to_hdf": 
                     dsstoHdfAction da = new dsstoHdfAction(a);
-                    da.ComputeAction();
+                    da.computeAction();
                     break;
                 case "copy_precip_table":
                     CopyPrecipAction ca = new CopyPrecipAction(a);
-                    ca.ComputeAction();
+                    ca.computeAction();
                     break;
                 case "export_excess_precip":
                     Project project = Project.open(hmsFilePath);
-                    ComputeSpecification spec = project.getComputeSpecification(simulation_name);//move to export precip action eventually
+                    ComputeSpecification spec = project.getComputeSpecification(simulationName);//move to export precip action eventually
                     ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
-                    ea.ComputeAction();
+                    ea.computeAction();
                     project.close();
                     break;
                 case "dss_to_csv":
                     dsstoCsvAction dca = new dsstoCsvAction(a);
-                    dca.ComputeAction();
+                    dca.computeAction();
                     break;
                 default:
                 break;
@@ -116,8 +113,8 @@ public class hmsrunner  {
                 data = Files.readAllBytes(path);
                 pm.putFile(data, output,0);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
+                return;
             } 
         }
         Hms.shutdownEngine();

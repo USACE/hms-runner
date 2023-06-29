@@ -11,7 +11,7 @@ public class dsstoCsvAction {
     public dsstoCsvAction(Action a) {
         action = a;
     }
-    public void ComputeAction(){
+    public void computeAction(){
         //get instance of plugin manager
         PluginManager pm = PluginManager.getInstance();
         //find source 
@@ -24,12 +24,12 @@ public class dsstoCsvAction {
             //panic?
             DSSErrorMessage error = reader.getLastError();
             error.printMessage();
-            //return;
+            return;
         }
         //find destination parameter
         DataSource destination = action.getParameters().get("destination");
         //read time series from source
-        int PathIndex = 0;
+        int pathIndex = 0;
         for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
             StringBuilder flows = new StringBuilder();
             TimeSeriesContainer tsc = new TimeSeriesContainer();
@@ -40,7 +40,7 @@ public class dsstoCsvAction {
                     //panic?
                     DSSErrorMessage error = reader.getLastError();
                     error.printMessage();
-                // return;
+                    return;
                 }
                 double[] values = tsc.values;
                 flows = flows.append(tsc.fullName + System.lineSeparator());
@@ -55,8 +55,8 @@ public class dsstoCsvAction {
                 }
                 //write time series to destination csv file based on the datasource path.
                 byte[] flowdata = flows.toString().getBytes();
-                pm.putFile(flowdata, destination, PathIndex);
-                PathIndex++;
+                pm.putFile(flowdata, destination, pathIndex);
+                pathIndex++;
                                         
         }
         //close reader

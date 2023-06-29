@@ -8,7 +8,7 @@ public class CopyPrecipAction {
     public CopyPrecipAction(Action a) {
         action = a;
     }
-    public void ComputeAction(){
+    public void computeAction(){
         //find source
         DataSource source = action.getParameters().get("source");
         String sourceDataPath = source.getDataPaths()[0];
@@ -17,7 +17,6 @@ public class CopyPrecipAction {
         try {
             connection.open();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return;
         }
@@ -29,10 +28,8 @@ public class CopyPrecipAction {
             try {
                 connection.copyTo(sourceDataPath, destDataPath,destFilePath);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
-        return;
     }
 }

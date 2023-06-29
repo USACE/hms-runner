@@ -15,12 +15,11 @@ public class ExportExcessPrecipAction {
         action = a;
         specification = spec;
     }
-    public void ComputeAction(){
+    public void computeAction(){
         //find destination 
         DataSource destination = action.getParameters().get("destination");
         Set<SpatialVariableType> variables = new HashSet<>();
         variables.add(SpatialVariableType.INC_EXCESS);
         specification.exportSpatialResults(destination.getPaths()[0], variables);
-        return;
     }
 }

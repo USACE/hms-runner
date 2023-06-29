@@ -4,6 +4,7 @@ import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
 import usace.cc.plugin.Action;
 import usace.cc.plugin.DataSource;
+import usace.cc.plugin.Payload;
 import usace.cc.plugin.PluginManager;
 
 public class dsstoCsvAction {
@@ -28,9 +29,16 @@ public class dsstoCsvAction {
         }
         //find destination parameter
         DataSource destination = action.getParameters().get("destination");
+        Payload payload = pm.getPayload();
         //read time series from source
         int pathIndex = 0;
         for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
+            boolean hasMultiplier = payload.getAttributes().containsKey(p + "- multiplier");
+            float multiplier = 1.0f;
+            if (hasMultiplier){
+                float mult = Float.parseFloat((String) payload.getAttributes().get(p + " - multiplier"));
+                multiplier = mult;
+            }
             StringBuilder flows = new StringBuilder();
             TimeSeriesContainer tsc = new TimeSeriesContainer();
                 tsc.fullName = p;
@@ -47,6 +55,7 @@ public class dsstoCsvAction {
                 double delta = 1.0/24.0;//test with other datasets - probably need to make it dependent on d part.
                 double timestep = 0;
                 for(double f : values){
+                    f = f*multiplier;
                     flows = flows.append(timestep)
                                 .append(",")
                                 .append(f)

@@ -9,4 +9,3 @@ RUN wget https://www.hec.usace.army.mil/nexus/repository/maven-public/mil/army/u
 RUN tar -xvzf /hec-hms-4.11-beta.16-linux64.tar.gz -C /
 
 RUN apt -y install git
-RUN apt -y install libgfortran5

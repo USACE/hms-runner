@@ -23,8 +23,8 @@ configurations {
     linux_x64
 }
 dependencies {
-    implementation files('/HEC-HMS-4.11-beta.16/hms.jar')
-    implementation fileTree(dir: '/HEC-HMS-4.11-beta.16/lib', include: '*.jar')
+    implementation files('/HEC-HMS-4.11/hms.jar')
+    implementation fileTree(dir: '/HEC-HMS-4.11/lib', include: '*.jar')
     implementation 'mil.army.usace.hec:cc-java-sdk:0.0.50'
 }
 
@@ -36,7 +36,7 @@ jar {
     }
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    
+
     from {
         configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
     }

@@ -21,7 +21,7 @@ ENV TOKEN=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
 RUN mkdir -p /app
 WORKDIR /app
 #clone repo
-RUN git clone https://github.com/USACE/hms-runner.git
+RUN git clone https://github.com/Dewberry/hms-runner.git
 WORKDIR /app/hms-runner
 #build gradle
 RUN gradle build --no-daemon

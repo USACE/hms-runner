@@ -42,10 +42,14 @@ public class hmsrunner  {
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
                 case "download_inputs":
-                    System.out.println("Getting inputs");
                     downloadInputsAction dia = new downloadInputsAction(a, mp, pm, modelOutputDestination);
                     dia.computeAction();
                     hmsFilePath = dia.getHMSFilePath();
+                    break;
+                case "push_outputs":
+                    pushOutputsAction poa = new pushOutputsAction(a, mp, pm, modelOutputDestination);
+                    poa.computeAction();
+                    break;
                 case "compute_forecast":
                     computeForecastAction cfa = new computeForecastAction(a, simulationName, variantName);
                     cfa.computeAction();
@@ -78,19 +82,7 @@ public class hmsrunner  {
             }
 
         }
-        //push results to s3.
 
-        for (DataSource output : mp.getOutputs()) {
-            Path path = Paths.get(modelOutputDestination + output.getName());
-            byte[] data;
-            try {
-                data = Files.readAllBytes(path);
-                pm.putFile(data, output,0);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-        }
         Hms.shutdownEngine();
     }
     private static boolean deleteDirectory(File directoryToBeDeleted) {

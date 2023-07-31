@@ -21,7 +21,7 @@ public class hmsrunner  {
         System.out.println(PLUGINNAME + " says hello.");
         //check the args are greater than 1
         PluginManager pm = PluginManager.getInstance();
-        //load payload. 
+        //load payload.
         Payload mp = pm.getPayload();
         //get Alternative name
         String modelName = (String) mp.getAttributes().get("model_name");
@@ -36,42 +36,16 @@ public class hmsrunner  {
         deleteDirectory(dest);
         //download the payload to list all input files
         String hmsFilePath = "";
-        
-        for(DataSource i : mp.getInputs()){
-            if (i.getName().contains(".hms")){
-                //compute passing in the event config portion of the model payload
-                hmsFilePath = modelOutputDestination + i.getName();
-            }
-            byte[] bytes = pm.getFile(i, 0);
-            //write bytes locally.
-            File f = new File(modelOutputDestination, i.getName());
-            try {
-                if (!f.getParentFile().exists()){
-                    f.getParentFile().mkdirs();
-                }
-                if (!f.createNewFile()){
-                    f.delete();
-                    if(!f.createNewFile()){
-                        System.out.println(f.getPath() + " cant create or delete this location");
-                        return;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-            try(FileOutputStream outputStream = new FileOutputStream(f)){
-                outputStream.write(bytes);
-            }catch(Exception e){
-                e.printStackTrace();
-                return;
-            }
-        }    
- 
+
         //perform all actions
         for (Action a : mp.getActions()){
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
+                case "download_inputs":
+                    System.out.println("Getting inputs");
+                    downloadInputsAction dia = new downloadInputsAction(a, mp, pm, modelOutputDestination);
+                    dia.computeAction();
+                    hmsFilePath = dia.getHMSFilePath();
                 case "compute_forecast":
                     computeForecastAction cfa = new computeForecastAction(a, simulationName, variantName);
                     cfa.computeAction();
@@ -80,7 +54,7 @@ public class hmsrunner  {
                     computeSimulationAction csa = new computeSimulationAction(a, simulationName);
                     csa.computeAction();
                     break;
-                case "dss_to_hdf": 
+                case "dss_to_hdf":
                     dsstoHdfAction da = new dsstoHdfAction(a);
                     da.computeAction();
                     break;
@@ -106,7 +80,7 @@ public class hmsrunner  {
         }
         //push results to s3.
 
-        for (DataSource output : mp.getOutputs()) { 
+        for (DataSource output : mp.getOutputs()) {
             Path path = Paths.get(modelOutputDestination + output.getName());
             byte[] data;
             try {
@@ -115,7 +89,7 @@ public class hmsrunner  {
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
-            } 
+            }
         }
         Hms.shutdownEngine();
     }

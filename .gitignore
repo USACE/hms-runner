@@ -28,3 +28,4 @@ run/*
 configs/models/*
 .env
 s3-clone/*
+Dockerfile.dev

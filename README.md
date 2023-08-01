@@ -1,50 +1,54 @@
 # hms-runner
 
-a lightweight hms runner in linux for wat-api
+A lightweight hms-runner for cloud wat (or cloud compute: `cc`)
 
-the following environmental variables will need to be configured to run this project:
 
-```
+This library uses the [cc-java-sdk](https://github.com/USACE/cc-java-sdk) to read from a `payload` file stored in the bucket specified by `CC_AWS_S3_BUCKET` at the path `$CC_ROOT/$CC_MANIFEST_ID/payload`. The `payload` contains information for the hms-runner to perform various `actions`.
 
-GDAL_DATA
+This library provides tools to for running hms in a containerized environment with the following `Actions`:
 
-PROJ_LIB
+1. [downloadInputsAction](\src/main/java/usace/cc/plugin/hmsrunner/downloadInputsAction.java): Verifies connection to S3 and downloads all files listed in the `payload` to the local directory (i.e. in the container) `/models`.
+2. 
+3. 
 
-CC_AWS_REGION
+The `payload` is a JSON formatted file defined by an `attributes` dictionary containing properties available to the various actions:
 
-CC_AWS_ACCESS_KEY_ID
+- stores: 
+- sources:  
+    - inputs:
+    - outputs: 
 
-CC_AWS_SECRET_ACCESS_KEY
+The `payload` provides a structured and consistent serialization of required data that CC can provide to plugins.
 
-CC_AWS_DEFAULT_REGION
 
-CC_AWS_S3_BUCKET
 
-CC_ROOT
+## Getting Started
 
-CC_MANIFEST_ID
+### Requirements
 
-CC_EVENT_NUMBER
+- [Docker](https://docs.docker.com/get-docker/)
+- other (java)
 
-FFRD_AWS_DEFAULT_REGION
+### Running the System
+This stack requires the following....
 
-FFRD_AWS_ACCESS_KEY_ID
+#### Running system the first time
 
-FFRD_AWS_SECRET_ACCESS_KEY
-
-FFRD_AWS_S3_BUCKET
-
-USERNAME
-
-TOKEN
+Run the hms-runner with Docker:
 
 ```
+docker build . -t <image_name>
+docker run <image_name>
+```
 
-where `USERNAME` and `TOKEN` are github credentials, and the token has read-access.
+Optionally, if a `.env` file was created, it can be passed to the container with `--env-file .env ` coming BEFORE the image_name in the run command.
 
-hms-runner uses the cc-java-sdk (CC) to look in the bucket specified by `CC_AWS_S3_BUCKET` at the path `$CC_ROOT/$CC_MANIFEST_ID` for a file called `payload` which contains information for the hms-runner to perform various "actions" (for example, the action specified in computeForecastAction.java). A Payload is a JSON formatted file defined by a an "attributes" dictionary containing properties of the HMS model being run, along with various slices such as a "stores" slice to define various S3 stores to be used, as well as a slice of DataSources that are inputs, a slice of DataSources that are outputs, and a slice of Actions that are the actions to be performed by the hms-runner. This is the structured way that CC can provide plugins information to compute within the framework.
+...
 
-The mapping of input files for the hms-runner is as follows:
+
+## Payload
+
+The [payload](example-payload.json) ....mapping of input files for the hms-runner is as follows:
 
 ```
 kanawha
@@ -78,11 +82,3 @@ kanawha
 |			│   output.dss
 ```
 
-Run the hms-runner with Docker:
-
-```
-docker build . -t <image_name>
-docker run <image_name>
-```
-
-Optionally, if a `.env` file was created, it can be passed to the container with `--env-file .env ` coming BEFORE the image_name in the run command.

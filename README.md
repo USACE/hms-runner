@@ -57,10 +57,10 @@ kanawha
 └───runs
 │   └───51
 |		└───hms-mutator
-|			│   Jan_1996.met
-|			│   KanawhaHMS.grid
-|			└───data
-│       		│   Storm.dss
+|		|	│   Jan_1996.met
+|		|	│   KanawhaHMS.grid
+|		|	└───data
+│       |		│   Storm.dss
 |		└───hms-runner
 |			│   Jan_1996___Calibration.dss
 ```

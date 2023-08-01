@@ -1,7 +1,10 @@
 {
 	"attributes": {
-		"model_name": "WhiteRiver_Muncie",
-		"simulation": "Dec2013"
+		"model_name": "KanawhaHMS",
+		"simulation": "Jan 1996 - Calibration",
+		"simulationbar": "Jan_1996___Calibration",
+		"//CAMDENONGAULEY_LOC/FLOW-BASE//1Hour/RUN:{ATTR::simulation}/ - multiplier": "0.5",
+		"//KANAWHA FALLS_LOC/FLOW-BASE//1Hour/RUN:{ATTR::simulation}/ - multiplier": "0.13"
 	},
 	"stores": [
 		{
@@ -10,118 +13,188 @@
 			"StoreType": "S3",
 			"DsProfile": "FFRD",
 			"Parameters": {
-				"root": "muncie"
+				"root": "kanawha"
 			},
 			"Session": null
 		}
 	],
 	"inputs": [
 		{
-			"Name": "WhiteRiver_Muncie.grid",
+			"Name": "KanawhaHMS.grid",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.grid"
+				"runs/{ENV::CC_EVENT_NUMBER}/hms-mutator/KanawhaHMS.grid"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "AORC.met",
+			"Name": "Jan_1996.met",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"AORC.met"
+				"runs/{ENV::CC_EVENT_NUMBER}/hms-mutator/Jan_1996.met"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "data/AORC_Dec2013.dss",
+			"Name": "data/Storm.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"data/AORC_Dec2013.dss"
+				"runs/{ENV::CC_EVENT_NUMBER}/hms-mutator/data/Storm.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "Dec_2013.control",
+			"Name": "Jan_1996.control",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"Dec_2013.control"
+				"hms/Jan_1996.control"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie.dss",
+			"Name": "KanawhaHMS.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.dss"
+				"hms/KanawhaHMS.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie.gage",
+			"Name": "data/Alderson_to_Hilldale_1.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.gage"
+				"hms/data/Alderson_to_Hilldale_1.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie.hms",
+			"Name": "data/Alderson_to_Hildale.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.hms"
+				"hms/data/Alderson_to_Hildale.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie.pdata",
+			"Name": "data/Streamflow/Reservoirs.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.pdata"
+				"hms/data/Streamflow/Reservoirs.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie.run",
+			"Name": "data/Streamflow/Streamflow.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie.run"
+				"hms/data/Streamflow/Streamflow.dss"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie_Dec2013.basin",
+			"Name": "KanawhaHMS.gage",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie_Dec2013.basin"
+				"hms/KanawhaHMS.gage"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "WhiteRiver_Muncie_Dec2013.sqlite",
+			"Name": "KanawhaHMS.hms",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"WhiteRiver_Muncie_Dec2013.sqlite"
+				"hms/KanawhaHMS.hms"
 			],
 			"StoreName": "FFRD"
 		},
 		{
-			"Name": "data/WhiteRiver_USGSGage.dss",
+			"Name": "KanawhaHMS.pdata",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"data/WhiteRiver_USGSGage.dss"
+				"hms/KanawhaHMS.pdata"
+			],
+			"StoreName": "FFRD"
+		},
+		{
+			"Name": "KanawhaHMS.run",
+			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+			"Paths": [
+				"hms/KanawhaHMS.run"
+			],
+			"StoreName": "FFRD"
+		},
+		{
+			"Name": "KanawhaCWMS___1996.basin",
+			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+			"Paths": [
+				"hms/KanawhaCWMS___1996.basin"
+			],
+			"StoreName": "FFRD"
+		},
+		{
+			"Name": "KanawhaCWMS___1996.sqlite",
+			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+			"Paths": [
+				"hms/KanawhaCWMS___1996.sqlite"
 			],
 			"StoreName": "FFRD"
 		}
 	],
 	"outputs": [
 		{
-			"Name": "Dec2013.dss",
+			"Name": "{ATTR::simulationbar}.dss",
 			"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"Paths": [
-				"/runs/{ENV::CC_EVENT_NUMBER}/hms-runner/Dec2013.dss",
-				"//WHITERIVER_GAGEDATA/FLOW/01DEC2013/1HOUR/RUN:DEC2013/"
+				"runs/{ENV::CC_EVENT_NUMBER}/hms-runner/{ATTR::simulationbar}.dss"
 			],
 			"StoreName": "FFRD"
+		}
+	],
+	"actions": [
+		{
+			"name": "download_inputs",
+			"desc": "downloading inputs",
+			"params": {
+				"project_file": {
+					"Name": "project_file",
+					"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+					"Paths": [
+						"/model/{ATTR::model_name}/{ATTR::model_name}.hms"
+					],
+					"StoreName": "LOCAL",
+					"DataPaths": []
+				}
+			}
+		},
+		{
+			"name": "compute_simulation",
+			"desc": "computing a simulation",
+			"params": {
+				"project_file": {
+					"Name": "project_file",
+					"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+					"Paths": [
+						"/model/{ATTR::model_name}/{ATTR::model_name}.hms"
+					],
+					"StoreName": "LOCAL",
+					"DataPaths": []
+				}
+			}
+		},
+		{
+			"name": "push_outputs",
+			"desc": "push outputs",
+			"params": {
+				"project_file": {
+					"Name": "project_file",
+					"ID": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+					"Paths": [
+						"/model/{ATTR::model_name}/{ATTR::model_name}.hms"
+					],
+					"StoreName": "LOCAL",
+					"DataPaths": []
+				}
+			}
 		}
 	]
 }

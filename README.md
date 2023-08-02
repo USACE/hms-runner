@@ -51,16 +51,16 @@ kanawha
 │   └───data
 │       │   Alderson_to_Hilldale_1.dss
 |       |   Alderson_to_Hildale.dss
-|		└───Streamflow
-|			│   Resevoirs.dss
-|			│   Streamflow.dss
+|       └───Streamflow
+|           │   Resevoirs.dss
+|           │   Streamflow.dss
 └───runs
 │   └───51
-|		└───hms-mutator
-|		|	│   Jan_1996.met
-|		|	│   KanawhaHMS.grid
-|		|	└───data
-│       |		│   Storm.dss
-|		└───hms-runner
-|			│   Jan_1996___Calibration.dss
+|       └───hms-mutator
+|       |   │   Jan_1996.met
+|       |   │   KanawhaHMS.grid
+|       |   └───data
+│       |       │   Storm.dss
+|       └───hms-runner
+|           │   Jan_1996___Calibration.dss
 ```

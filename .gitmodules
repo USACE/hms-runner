@@ -1,0 +1,3 @@
+[submodule "cc-java-sdk"]
+	path = cc-java-sdk
+	url = git@github.com:Dewberry/cc-java-sdk.git

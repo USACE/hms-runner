@@ -3,21 +3,9 @@
 plugins {
     id 'java-library'
 }
-//Dependency Management
+
 repositories {
     mavenCentral()
-    maven{
-        name = "GitHubPackages"
-        // The url of the repository that contains the published artifacts
-        url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-        }
-    }
-    maven {
-        url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
-    }
 }
 configurations {
     linux_x64
@@ -25,7 +13,6 @@ configurations {
 dependencies {
     implementation files('/HEC-HMS-4.11/hms.jar')
     implementation fileTree(dir: '/HEC-HMS-4.11/lib', include: '*.jar')
-    implementation 'mil.army.usace.hec:cc-java-sdk:0.0.50'
 }
 
 jar {

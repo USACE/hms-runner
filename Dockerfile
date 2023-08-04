@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu as cc-builder
 ENV TZ=America/New_York
 RUN apt update
-RUN apt -y install wget git unzip
+RUN apt -y install wget unzip
 RUN wget https://services.gradle.org/distributions/gradle-7.3.1-bin.zip
 RUN mkdir /opt/gradle
 RUN unzip -d /opt/gradle gradle-7.3.1-bin.zip
@@ -16,13 +16,12 @@ RUN gradle build
 FROM openjdk:17-jdk-slim-bullseye as hms-builder
 ENV TZ=America/New_York
 RUN apt update
-RUN apt -y install wget git unzip
+RUN apt -y install wget unzip
 RUN wget https://services.gradle.org/distributions/gradle-7.3.1-bin.zip
 RUN mkdir /opt/gradle
 RUN unzip -d /opt/gradle gradle-7.3.1-bin.zip
 ENV PATH=$PATH:/opt/gradle/gradle-7.3.1/bin
 RUN apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1
-RUN apt -y install wget
 
 RUN wget https://www.hec.usace.army.mil/nexus/repository/maven-public/mil/army/usace/hec/hec-hms/4.11-linux64/hec-hms-4.11-linux64.tar.gz -P /
 RUN tar -xvzf /hec-hms-4.11-linux64.tar.gz -C /

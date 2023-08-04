@@ -17,7 +17,7 @@ This library provides tools for running hms in a containerized environment with 
 
 ## Getting Started
 
-Note: To ensure the `cc-java-sdk` is in place and up to date, run the `./update-gitsubmodule.sh` command before proceeding. 
+Note: To ensure the `cc-java-sdk` [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is in place and up to date, run the `./update-gitsubmodule.sh` command before proceeding. 
 
 ### Requirements
 

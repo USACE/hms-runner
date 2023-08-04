@@ -3,9 +3,9 @@ package usace.cc.plugin.hmsrunner;
 import usace.cc.plugin.Action;
 import usace.cc.plugin.DataSource;
 
-public class CopyPrecipAction {
+public class copyPrecipAction {
     private Action action;
-    public CopyPrecipAction(Action a) {
+    public copyPrecipAction(Action a) {
         action = a;
     }
     public void computeAction(){

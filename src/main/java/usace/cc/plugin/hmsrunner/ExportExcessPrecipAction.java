@@ -8,10 +8,10 @@ import java.util.Set;
 
 import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
-public class ExportExcessPrecipAction {
+public class exportExcessPrecipAction {
     private Action action;
     private ComputeSpecification specification;
-    public ExportExcessPrecipAction(Action a, ComputeSpecification spec ) {
+    public exportExcessPrecipAction(Action a, ComputeSpecification spec ) {
         action = a;
         specification = spec;
     }

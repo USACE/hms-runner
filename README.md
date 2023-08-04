@@ -6,14 +6,14 @@ This library uses the [cc-java-sdk](https://github.com/USACE/cc-java-sdk) to rea
 
 This library provides tools for running hms in a containerized environment with the following `Actions`:
 
-1. [downloadInputsAction](\src/main/java/usace/cc/plugin/hmsrunner/downloadInputsAction.java): Verifies connection to S3 and downloads all files listed in the `payload` to the local directory (i.e. in the container) `/model/{model_name}` where `model_name` is specified in the payload as an attribute.
-2. [computeForecastAction](\src/main/java/usace/cc/plugin/hmsrunner/computeForecast.java): Opens a project and runs a forecast for that project.
-3. [computeSimulationAction](\src/main/java/usace/cc/plugin/hmsrunner/computeSimulationAction.java): Opens a project and runs a simulation for that project.
-4. [CopyPrecipAction](\src/main/java/usace/cc/plugin/hmsrunner/CopyPrecipAction.java): Connects to a h5 instance to access hdf5 storage and copy files from a `source` to a `destination` as specified by the payload action.
-5. [dsstoCsvAction](\src/main/java/usace/cc/plugin/hmsrunner/dsstoCsvAction.java): Reads a .dss file to write the `HecTimeSeries` to a destination csv file based on the datasource path
-6. [dsstoCHdfAction](\src/main/java/usace/cc/plugin/hmsrunner/dsstoHdfAction.java): Reads a .dss file to write the `HecTimeSeries` to a destination csv file based on the datasource path
-7. [ExportExcessPrecipAction](\src/main/java/usace/cc/plugin/hmsrunner/ExportExcessPrecipAction.java): Uses the hms model's `exportSpatialResults` function to export spatial variable data to a specified `destination`
-8. [pushOutputsAction](\src/main/java/usace/cc/plugin/hmsrunner/pushOutputsAction.java): Takes the output files specified in the `payload` and pushes them to the S3 bucket.
+1. [downloadInputsAction](src/main/java/usace/cc/plugin/hmsrunner/downloadInputsAction.java): Verifies connection to S3 and downloads all files listed in the `payload` to the local directory (i.e. in the container) `/model/{model_name}` where `model_name` is specified in the payload as an attribute.
+2. [computeForecastAction](src/main/java/usace/cc/plugin/hmsrunner/computeForecast.java): Opens a project and runs a forecast for that project.
+3. [computeSimulationAction](src/main/java/usace/cc/plugin/hmsrunner/computeSimulationAction.java): Opens a project and runs a simulation for that project.
+4. [copyPrecipAction](src/main/java/usace/cc/plugin/hmsrunner/copyPrecipAction.java): Connects to a h5 instance to access hdf5 storage and copy files from a `source` to a `destination` as specified by the payload action.
+5. [dsstoCsvAction](src/main/java/usace/cc/plugin/hmsrunner/dsstoCsvAction.java): Reads a .dss file to write the `HecTimeSeries` to a destination csv file based on the datasource path
+6. [dsstoCHdfAction](src/main/java/usace/cc/plugin/hmsrunner/dsstoHdfAction.java): Reads a .dss file to write the `HecTimeSeries` to a destination csv file based on the datasource path
+7. [exportExcessPrecipAction](src/main/java/usace/cc/plugin/hmsrunner/exportExcessPrecipAction.java): Uses the hms model's `exportSpatialResults` function to export spatial variable data to a specified `destination`
+8. [pushOutputsAction](src/main/java/usace/cc/plugin/hmsrunner/pushOutputsAction.java): Takes the output files specified in the `payload` and pushes them to the S3 bucket.
 
 ## Getting Started
 

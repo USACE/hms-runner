@@ -63,13 +63,13 @@ public class hmsrunner  {
                     da.computeAction();
                     break;
                 case "copy_precip_table":
-                    CopyPrecipAction ca = new CopyPrecipAction(a);
+                    copyPrecipAction ca = new copyPrecipAction(a);
                     ca.computeAction();
                     break;
                 case "export_excess_precip":
                     Project project = Project.open(hmsFilePath);
                     ComputeSpecification spec = project.getComputeSpecification(simulationName);//move to export precip action eventually
-                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
+                    exportExcessPrecipAction ea = new exportExcessPrecipAction(a, spec);
                     ea.computeAction();
                     project.close();
                     break;

@@ -2,7 +2,7 @@
 
 A lightweight hms-runner for cloud wat (or cloud compute: `cc`)
 
-This library uses the [cc-java-sdk](https://github.com/USACE/cc-java-sdk) to read from a `payload` file stored in the bucket specified by `CC_AWS_S3_BUCKET` at the path `$CC_ROOT/$CC_MANIFEST_ID/payload`. In general, the `payload` provides a structured and consistent serialization of required data that CC can provide to plugins. In this case, the `payload` contains information for hms-runner to perform various `actions`.
+This library uses the [cc-java-sdk](https://github.com/USACE/cc-java-sdk) (see Note in Getting Started below) to read from a `payload` file stored in the bucket specified by `CC_AWS_S3_BUCKET` at the path `$CC_ROOT/$CC_MANIFEST_ID/payload`. In general, the `payload` provides a structured and consistent serialization of required data that CC can provide to plugins. In this case, the `payload` contains information for hms-runner to perform various `actions`.
 
 This library provides tools for running hms in a containerized environment with the following `Actions`:
 
@@ -17,10 +17,12 @@ This library provides tools for running hms in a containerized environment with 
 
 ## Getting Started
 
+Note: To ensure the `cc-java-sdk` is in place and up to date, run the `./update-gitsubmodule.sh` command before proceeding. 
+
 ### Requirements
 
 - [Docker](https://docs.docker.com/get-docker/)
-- AWS S3
+- AWS S3 (or minio running in local network)
 
 ### Running the System
 

@@ -10,7 +10,7 @@ ENV PATH=$PATH:/opt/gradle/gradle-7.3.1/bin
 RUN mkdir /cc
 WORKDIR /cc
 COPY ./cc-java-sdk /cc
-RUN gradle build 
+RUN gradle build
 
 # Build the hms-runner
 FROM openjdk:17-jdk-slim-bullseye as hms-builder
@@ -27,7 +27,7 @@ RUN wget https://www.hec.usace.army.mil/nexus/repository/maven-public/mil/army/u
 RUN tar -xvzf /hec-hms-4.11-linux64.tar.gz -C /
 
 COPY --from=cc-builder /cc/build/libs/cc-0.0.50.jar /HEC-HMS-4.11/lib
-COPY . /app/hms-runner 
+COPY . /app/hms-runner
 WORKDIR /app/hms-runner
 RUN gradle build --no-daemon
 
@@ -51,4 +51,4 @@ ENV JAVA_OPTS="-Djava.library.path=$HMS_HOME/bin/gdal:$HMS_HOME/bin"
 RUN chmod +x /HEC-HMS-4.11/jre/bin/java
 
 WORKDIR /HEC-HMS-4.11/lib
-ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar"]
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]

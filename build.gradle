@@ -11,6 +11,7 @@ configurations {
     linux_x64
 }
 dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     implementation files('/HEC-HMS-4.11/hms.jar')
     implementation fileTree(dir: '/HEC-HMS-4.11/lib', include: '*.jar')
 }

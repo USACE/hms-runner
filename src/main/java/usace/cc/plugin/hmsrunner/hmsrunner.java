@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.HashMap;
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
 import hms.Hms;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class hmsrunner  {
     public static final String PLUGINNAME = "hmsrunner";
@@ -19,8 +22,29 @@ public class hmsrunner  {
      */
     public static void main(String[] args) {
         System.out.println(PLUGINNAME + " says hello.");
-        //check the args are greater than 1
-        PluginManager pm = PluginManager.getInstance();
+        PluginManager pm;
+        if(args.length == 1) {
+            Map<String, String> argsMap = new HashMap<String, String>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                argsMap = mapper.readValue(args[0], HashMap.class);
+                pm = PluginManager.getInstance(argsMap.get("root"), argsMap.get("manifestID"));
+            } catch (Exception e) {
+                System.err.println("ERROR: Command line parameter must be a JSON formatted string");
+                System.exit(1);
+                pm = PluginManager.getInstance();
+            }
+        } else if(args.length > 1) {
+            System.err.println("ERROR: Invalid command-line parameters. Usage: Requires 1 JSON string argument or 0 arguments");
+            System.exit(1);
+            pm = PluginManager.getInstance();
+        } else {
+            if(System.getenv("CC_ROOT") == null || System.getenv("CC_MANIFEST_ID") == null) {
+                System.err.println("ERROR: root and manifestID must be specified either as command line args or environmental variables");
+                System.exit(1);
+            }
+            pm = PluginManager.getInstance();
+        }
         //load payload.
         Payload mp = pm.getPayload();
         //get Alternative name

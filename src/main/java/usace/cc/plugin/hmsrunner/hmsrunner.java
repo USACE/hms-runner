@@ -28,6 +28,10 @@ public class hmsrunner  {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 argsMap = mapper.readValue(args[0], HashMap.class);
+                if(!argsMap.containsKey("root") || !argsMap.containsKey("manifestID")){
+                    System.err.println("ERROR: Command line parameter JSON must include `root` and `manifestID` fields");
+                    System.exit(1);
+                }
                 pm = PluginManager.getInstance(argsMap.get("root"), argsMap.get("manifestID"));
             } catch (Exception e) {
                 System.err.println("ERROR: Command line parameter must be a JSON formatted string");

@@ -36,10 +36,22 @@ docker run --env-file .env-example <image_name>
 Inside the dockerfile, the following line
 
 ```
-ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar"]
 ```
 
-can be modified to exclude or include command line parameters when running the hms-runner by either removing or keeping the last JSON string in the command. If excluded, environment variables named `CC_ROOT` and `CC_MANIFEST_ID` must be present. If included, ensure that the string is correctly JSON formatted, with the `root` and `manifestID` fields present in the JSON. These two values help specify the location in which the payload is located in the S3 bucket.
+can be modified to include command line parameters when running the hms-runner by adding an additional JSON string in the command. If excluded, environment variables named `CC_ROOT` and `CC_MANIFEST_ID` must be present. If included, ensure that the string is correctly JSON formatted, with the `root` and `manifestID` fields present in the JSON. These two values help specify the location in which the payload is located in the S3 bucket.
+
+The following is an incorrect example of using the command line args, as the required fields are not included in the JSON:
+
+```
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"cc_root\":\"cc-store\", \"cc_manifestID\":\"kanawha-test\"}"]
+```
+
+The following is a correct example of using the command line args, specifying `root` and `manifestID` in a properly formatted JSON:
+
+```
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]
+```
 
 ## Payload Example
 
@@ -52,11 +64,11 @@ kanawha
 │   │   Jan_1996.control
 │   │   KanawhaCWMS___1996.basin
 │   │   KanawhaCWMS___1996.sqlite
-│   │   KanawhaHMS.dss
-│   │   KanawhaHMS.gage
-│   │   KanawhaHMS.hms
-│   │   KanawhaHMS.pdata
-│   │   KanawhaHMS.run
+│   │   <ModelName>.dss
+│   │   <ModelName>.gage
+│   │   <ModelName>.hms
+│   │   <ModelName>.pdata
+│   │   <ModelName>.run
 │   │
 │   └───data
 │       │   Alderson_to_Hilldale_1.dss
@@ -68,7 +80,7 @@ kanawha
 │   └───51
 |       └───hms-mutator
 |       |   │   Jan_1996.met
-|       |   │   KanawhaHMS.grid
+|       |   │   <ModelName>.grid
 |       |   └───data
 │       |       │   Storm.dss
 |       └───hms-runner

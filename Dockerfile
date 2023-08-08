@@ -51,4 +51,4 @@ ENV JAVA_OPTS="-Djava.library.path=$HMS_HOME/bin/gdal:$HMS_HOME/bin"
 RUN chmod +x /HEC-HMS-4.11/jre/bin/java
 
 WORKDIR /HEC-HMS-4.11/lib
-ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar"]

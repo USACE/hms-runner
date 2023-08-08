@@ -41,13 +41,7 @@ ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bi
 
 can be modified to include command line parameters when running the hms-runner by adding an additional JSON string in the command. If excluded, environment variables named `CC_ROOT` and `CC_MANIFEST_ID` must be present. If included, ensure that the string is correctly JSON formatted, with the `root` and `manifestID` fields present in the JSON. These two values help specify the location in which the payload is located in the S3 bucket.
 
-The following is an incorrect example of using the command line args, as the required fields are not included in the JSON:
-
-```
-ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"cc_root\":\"cc-store\", \"cc_manifestID\":\"kanawha-test\"}"]
-```
-
-The following is a correct example of using the command line args, specifying `root` and `manifestID` in a properly formatted JSON:
+The following is an example of using the command line args, specifying `root` and `manifestID` in a properly formatted JSON:
 
 ```
 ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]
@@ -58,31 +52,29 @@ ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bi
 This [payload](example-payload.json) contains the following mapping of input and output files for the hms-runner:
 
 ```
-kanawha
-│
-└───hms
-│   │   Jan_1996.control
-│   │   KanawhaCWMS___1996.basin
-│   │   KanawhaCWMS___1996.sqlite
-│   │   <ModelName>.dss
-│   │   <ModelName>.gage
-│   │   <ModelName>.hms
-│   │   <ModelName>.pdata
-│   │   <ModelName>.run
-│   │
-│   └───data
-│       │   Alderson_to_Hilldale_1.dss
-|       |   Alderson_to_Hildale.dss
-|       └───Streamflow
-|           │   Resevoirs.dss
-|           │   Streamflow.dss
-└───runs
-│   └───51
-|       └───hms-mutator
-|       |   │   Jan_1996.met
-|       |   │   <ModelName>.grid
-|       |   └───data
-│       |       │   Storm.dss
-|       └───hms-runner
-|           │   Jan_1996___Calibration.dss
+root
+├── hms
+│   ├── <Model>.basin
+│   ├── <Model>.control
+│   ├── <Model>.sqlite
+│   ├── <ModelName>.dss
+│   ├── <ModelName>.gage
+│   ├── <ModelName>.hms
+│   ├── <ModelName>.pdata
+│   ├── <ModelName>.run
+│   └── data
+│       ├── <ModelInput>.dss
+│       ├── <ModelInput2>.dss
+│       └── Streamflow
+│           ├── <ModelInput>.dss
+│           └── <ModelInput2>.dss
+└── runs
+    └── 51
+        ├── hms-mutator
+        │   ├── <ModelInput>.met
+        │   ├── <ModelName>.grid
+        │   └── data
+        │       └── <ModelInput>.dss
+        └── hms-runner
+            └── <ModeOutput>.dss
 ```

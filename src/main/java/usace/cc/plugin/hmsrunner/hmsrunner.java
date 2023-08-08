@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.HashMap;
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
 import hms.Hms;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class hmsrunner  {
     public static final String PLUGINNAME = "hmsrunner";
@@ -19,9 +22,34 @@ public class hmsrunner  {
      */
     public static void main(String[] args) {
         System.out.println(PLUGINNAME + " says hello.");
-        //check the args are greater than 1
-        PluginManager pm = PluginManager.getInstance();
-        //load payload. 
+        PluginManager pm;
+        if(args.length == 1) {
+            Map<String, String> argsMap = new HashMap<String, String>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                argsMap = mapper.readValue(args[0], HashMap.class);
+                if(!argsMap.containsKey("root") || !argsMap.containsKey("manifestID")){
+                    System.err.println("ERROR: Command line parameter JSON must include `root` and `manifestID` fields");
+                    System.exit(1);
+                }
+                pm = PluginManager.getInstance(argsMap.get("root"), argsMap.get("manifestID"));
+            } catch (Exception e) {
+                System.err.println("ERROR: Command line parameter must be a JSON formatted string");
+                System.exit(1);
+                pm = PluginManager.getInstance();
+            }
+        } else if(args.length > 1) {
+            System.err.println("ERROR: Invalid command-line parameters. Usage: Requires 1 JSON string argument or 0 arguments");
+            System.exit(1);
+            pm = PluginManager.getInstance();
+        } else {
+            if(System.getenv("CC_ROOT") == null || System.getenv("CC_MANIFEST_ID") == null) {
+                System.err.println("ERROR: root and manifestID must be specified either as command line args or environmental variables");
+                System.exit(1);
+            }
+            pm = PluginManager.getInstance();
+        }
+        //load payload.
         Payload mp = pm.getPayload();
         //get Alternative name
         String modelName = (String) mp.getAttributes().get("model_name");
@@ -36,42 +64,20 @@ public class hmsrunner  {
         deleteDirectory(dest);
         //download the payload to list all input files
         String hmsFilePath = "";
-        
-        for(DataSource i : mp.getInputs()){
-            if (i.getName().contains(".hms")){
-                //compute passing in the event config portion of the model payload
-                hmsFilePath = modelOutputDestination + i.getName();
-            }
-            byte[] bytes = pm.getFile(i, 0);
-            //write bytes locally.
-            File f = new File(modelOutputDestination, i.getName());
-            try {
-                if (!f.getParentFile().exists()){
-                    f.getParentFile().mkdirs();
-                }
-                if (!f.createNewFile()){
-                    f.delete();
-                    if(!f.createNewFile()){
-                        System.out.println(f.getPath() + " cant create or delete this location");
-                        return;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-            try(FileOutputStream outputStream = new FileOutputStream(f)){
-                outputStream.write(bytes);
-            }catch(Exception e){
-                e.printStackTrace();
-                return;
-            }
-        }    
- 
+
         //perform all actions
         for (Action a : mp.getActions()){
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
+                case "download_inputs":
+                    downloadInputsAction dia = new downloadInputsAction(a, mp, pm, modelOutputDestination);
+                    dia.computeAction();
+                    hmsFilePath = dia.getHMSFilePath();
+                    break;
+                case "push_outputs":
+                    pushOutputsAction poa = new pushOutputsAction(a, mp, pm, modelOutputDestination);
+                    poa.computeAction();
+                    break;
                 case "compute_forecast":
                     computeForecastAction cfa = new computeForecastAction(a, simulationName, variantName);
                     cfa.computeAction();
@@ -80,18 +86,18 @@ public class hmsrunner  {
                     computeSimulationAction csa = new computeSimulationAction(a, simulationName);
                     csa.computeAction();
                     break;
-                case "dss_to_hdf": 
+                case "dss_to_hdf":
                     dsstoHdfAction da = new dsstoHdfAction(a);
                     da.computeAction();
                     break;
                 case "copy_precip_table":
-                    CopyPrecipAction ca = new CopyPrecipAction(a);
+                    copyPrecipAction ca = new copyPrecipAction(a);
                     ca.computeAction();
                     break;
                 case "export_excess_precip":
                     Project project = Project.open(hmsFilePath);
                     ComputeSpecification spec = project.getComputeSpecification(simulationName);//move to export precip action eventually
-                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
+                    exportExcessPrecipAction ea = new exportExcessPrecipAction(a, spec);
                     ea.computeAction();
                     project.close();
                     break;
@@ -104,19 +110,7 @@ public class hmsrunner  {
             }
 
         }
-        //push results to s3.
 
-        for (DataSource output : mp.getOutputs()) { 
-            Path path = Paths.get(modelOutputDestination + output.getName());
-            byte[] data;
-            try {
-                data = Files.readAllBytes(path);
-                pm.putFile(data, output,0);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            } 
-        }
         Hms.shutdownEngine();
     }
     private static boolean deleteDirectory(File directoryToBeDeleted) {

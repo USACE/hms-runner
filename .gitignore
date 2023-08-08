@@ -26,3 +26,7 @@ gradle.properties
 hs_err_pid*
 run/*
 configs/models/*
+.env
+s3-clone/*
+Dockerfile.dev
+.gradle/*

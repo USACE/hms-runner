@@ -3,29 +3,17 @@
 plugins {
     id 'java-library'
 }
-//Dependency Management
+
 repositories {
     mavenCentral()
-    maven{
-        name = "GitHubPackages"
-        // The url of the repository that contains the published artifacts
-        url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-        }
-    }
-    maven {
-        url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
-    }
 }
 configurations {
     linux_x64
 }
 dependencies {
-    implementation files('/HEC-HMS-4.11-beta.16/hms.jar')
-    implementation fileTree(dir: '/HEC-HMS-4.11-beta.16/lib', include: '*.jar')
-    implementation 'mil.army.usace.hec:cc-java-sdk:0.0.50'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+    implementation files('/HEC-HMS-4.11/hms.jar')
+    implementation fileTree(dir: '/HEC-HMS-4.11/lib', include: '*.jar')
 }
 
 jar {
@@ -36,7 +24,7 @@ jar {
     }
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    
+
     from {
         configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
     }

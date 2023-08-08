@@ -17,7 +17,7 @@ This library provides tools for running hms in a containerized environment with 
 
 ## Getting Started
 
-Note: To ensure the `cc-java-sdk` [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is in place and up to date, run the `./update-gitsubmodule.sh` command before proceeding. 
+Note: To ensure the `cc-java-sdk` [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is in place and up to date, run the `./update-gitsubmodule.sh` command before proceeding.
 
 ### Requirements
 
@@ -29,9 +29,17 @@ Note: To ensure the `cc-java-sdk` [submodule](https://git-scm.com/book/en/v2/Git
 Run the hms-runner with Docker:
 
 ```
-docker build --build-arg USERNAME=<USERNAME> --build-arg TOKEN=<TOKEN> -t <image_name> .
+docker build . -t <image_name>
 docker run --env-file .env-example <image_name>
 ```
+
+Inside the dockerfile, the following line
+
+```
+ENTRYPOINT ["java", "-Djava.library.path=/HEC-HMS-4.11/bin/gdal:/HEC-HMS-4.11/bin", "-jar", "hms-runner-0.0.1.jar", "{\"root\":\"cc-store\", \"manifestID\":\"kanawha-test\"}"]
+```
+
+can be modified to exclude or include command line parameters when running the hms-runner by either removing or keeping the last JSON string in the command. If excluded, environment variables named `CC_ROOT` and `CC_MANIFEST_ID` must be present. If included, ensure that the string is correctly JSON formatted, with the `root` and `manifestID` fields present in the JSON. These two values help specify the location in which the payload is located in the S3 bucket.
 
 ## Payload Example
 

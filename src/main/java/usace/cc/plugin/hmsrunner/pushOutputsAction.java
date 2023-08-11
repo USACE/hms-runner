@@ -49,7 +49,7 @@ public class pushOutputsAction {
                 return;
             }
         }
-        if(outputPaths.length() > 0) { //ensure there were outputs
+        if(outputPaths.length() > 0 && jobID != "") { //ensure there were outputs
             write_paths_to_s3(outputPaths.substring(0, outputPaths.length()-1)); // truncate the extra comma at the end
         }
     }

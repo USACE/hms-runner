@@ -11,6 +11,7 @@ configurations {
     linux_x64
 }
 dependencies {
+    implementation 'software.amazon.awssdk:s3:2.20.123'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     implementation files('/HEC-HMS-4.11/hms.jar')
     implementation fileTree(dir: '/HEC-HMS-4.11/lib', include: '*.jar')

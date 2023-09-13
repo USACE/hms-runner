@@ -67,12 +67,12 @@ public class h5Connection {
     public void write(double[] flows, double[] times, String datasetName) throws Exception{
         int datasetId = openDataset(datasetName, this.fileId);
         int totlength = flows.length + times.length;
-        double[] data = new double[totlength];
+        float[] data = new float[totlength];
         int dataIndex = 0;
         for(int i=0;i<flows.length;i++){
-            data[dataIndex] = times[i];
+            data[dataIndex] = (float)times[i];
             dataIndex++;
-            data[dataIndex] = flows[i];
+            data[dataIndex] = (float)flows[i];
             dataIndex ++;
         }
         //check if data fits in the table?

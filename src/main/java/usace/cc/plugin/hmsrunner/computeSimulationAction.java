@@ -1,6 +1,11 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import hms.model.Project;
+import hms.model.data.SpatialVariableType;
+import hms.model.project.ComputeSpecification;
 import usace.cc.plugin.Action;
 
 public class computeSimulationAction {

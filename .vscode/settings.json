@@ -1,3 +1,7 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.test.config": {
+        "vmArgs": ["-Djava.library.path=/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:HEC-HMS-4.12/jre/lib/"],
+        //"envFile": "${workspaceFolder}/.env"
+    }
 }

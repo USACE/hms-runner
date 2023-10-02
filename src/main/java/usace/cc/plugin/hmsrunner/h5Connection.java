@@ -27,6 +27,7 @@ public class H5Connection {
             throw new HDF5Exception(String.format("Unable to open file: %s",path));
         }
     }
+    /* 
     public void saveAs(String destFilePath, String[] datasetNames) throws Exception{
         File f = new File(destFilePath);
         int destId = HDF5Constants.H5I_INVALID_HID;
@@ -39,10 +40,10 @@ public class H5Connection {
             throw new HDF5Exception(String.format("Unable to open file for copyto: %s",destFilePath));
         }
         for(String dataset: datasetNames){
-            H5.H5Ocopy(this.fileId, dataset, destId, dataset, destId, destId);
+            H5.H5Ocopy(this.fileId, dataset, destId, dataset, destId, destId); //@TODO: update me.
         }
         
-    }
+    }*/
     public void copyTo(String srcdatasetName, String destDatasetName, String destFilePath) throws Exception{
         File f = new File(destFilePath);
         int destId = HDF5Constants.H5I_INVALID_HID;

@@ -7,9 +7,9 @@ import usace.cc.plugin.DataSource;
 import usace.cc.plugin.Payload;
 import usace.cc.plugin.PluginManager;
 
-public class dsstoCsvAction {
+public class DssToCsvAction {
     private Action action;
-    public dsstoCsvAction(Action a) {
+    public DssToCsvAction(Action a) {
         action = a;
     }
     public void computeAction(){

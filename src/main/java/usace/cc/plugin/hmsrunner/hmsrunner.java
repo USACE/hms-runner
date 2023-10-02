@@ -12,7 +12,7 @@ import hms.model.Project;
 import hms.model.project.ComputeSpecification;
 import hms.Hms;
 
-public class hmsrunner  {
+public class HmsRunner  {
     public static final String PLUGINNAME = "hmsrunner";
     /**
      * @param args the command line arguments
@@ -73,15 +73,15 @@ public class hmsrunner  {
             pm.LogMessage(new Message(a.getDescription()));
             switch(a.getName()){
                 case "compute_forecast":
-                    computeForecastAction cfa = new computeForecastAction(a, simulationName, variantName);
+                    ComputeForecastAction cfa = new ComputeForecastAction(a, simulationName, variantName);
                     cfa.computeAction();
                     break;
                 case "compute_simulation":
-                    computeSimulationAction csa = new computeSimulationAction(a, simulationName);
+                    ComputeSimulationAction csa = new ComputeSimulationAction(a, simulationName);
                     csa.computeAction();
                     break;
                 case "dss_to_hdf": 
-                    dsstoHdfAction da = new dsstoHdfAction(a);
+                    DssToHdfAction da = new DssToHdfAction(a);
                     da.computeAction();
                     break;
                 case "copy_precip_table":
@@ -96,7 +96,7 @@ public class hmsrunner  {
                     project.close();
                     break;
                 case "dss_to_csv":
-                    dsstoCsvAction dca = new dsstoCsvAction(a);
+                    DssToCsvAction dca = new DssToCsvAction(a);
                     dca.computeAction();
                     break;
                 default:

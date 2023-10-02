@@ -3,6 +3,7 @@
 plugins {
     id 'java-library'
 }
+
 //Dependency Management
 repositories {
     mavenCentral()
@@ -19,13 +20,20 @@ repositories {
         url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
     }
 }
+
 configurations {
     linux_x64
 }
+
 dependencies {
     implementation files('/HEC-HMS-4.12/hms.jar')
     implementation fileTree(dir: '/HEC-HMS-4.12/lib', include: '*.jar')
     implementation 'mil.army.usace.hec:cc-java-sdk:0.0.50'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation files('/HEC-HMS-4.12/hms.jar')
+    testImplementation fileTree(dir: '/HEC-HMS-4.12/lib', include: '*.jar')
+    testImplementation 'mil.army.usace.hec:cc-java-sdk:0.0.50'
 }
 
 jar {
@@ -40,6 +48,14 @@ jar {
     from {
         configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
     }
+}
+
+test{
+    useJUnitPlatform()
+}
+
+tasks.withType(Test) {
+    systemProperty "java.library.path", "/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:/HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:/HEC-HMS-4.12/jre/lib"
 }
 
 group 'mil.army.usace.hec'

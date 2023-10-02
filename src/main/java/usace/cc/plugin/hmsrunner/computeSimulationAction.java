@@ -1,17 +1,12 @@
 package usace.cc.plugin.hmsrunner;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import hms.model.Project;
-import hms.model.data.SpatialVariableType;
-import hms.model.project.ComputeSpecification;
 import usace.cc.plugin.Action;
 
-public class computeSimulationAction {
+public class ComputeSimulationAction {
     private Action action;
     private String simulationName;
-    public computeSimulationAction(Action a, String simname) {
+    public ComputeSimulationAction(Action a, String simname) {
         this.action = a;
         this.simulationName = simname;
     }

@@ -13,7 +13,7 @@ public class CopyPrecipAction {
         DataSource source = action.getParameters().get("source");
         String sourceDataPath = source.getDataPaths()[0];
         //create hdf connection
-        h5Connection connection = new h5Connection(source.getPaths()[0]);//assumes one path and assumes it is hdf.
+        H5Connection connection = new H5Connection(source.getPaths()[0]);//assumes one path and assumes it is hdf.
         try {
             connection.open();
         } catch (Exception e) {

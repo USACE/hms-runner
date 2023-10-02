@@ -9,9 +9,9 @@ import usace.cc.plugin.DataSource;
 import usace.cc.plugin.Payload;
 import usace.cc.plugin.PluginManager;
 
-public class dsstoHdfAction {
+public class DssToHdfAction {
     private Action action;
-    public dsstoHdfAction(Action a) {
+    public DssToHdfAction(Action a) {
         action = a;
     }
     public void computeAction(){
@@ -32,7 +32,7 @@ public class dsstoHdfAction {
         //find destination parameter
         DataSource destination = action.getParameters().get("destination");
         //create hdf writer
-        h5Connection writer = new h5Connection(destination.getPaths()[0]);//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths()[0]);//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {

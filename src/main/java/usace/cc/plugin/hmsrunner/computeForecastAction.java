@@ -3,11 +3,11 @@ package usace.cc.plugin.hmsrunner;
 import hms.model.Project;
 import usace.cc.plugin.Action;
 
-public class computeForecastAction {
+public class ComputeForecastAction {
     private Action action;
     private String simulationName;
     private String variantName;
-    public computeForecastAction(Action a, String simName, String variantName) {
+    public ComputeForecastAction(Action a, String simName, String variantName) {
         this.action = a;
         this.simulationName = simName;
         this.variantName = variantName;

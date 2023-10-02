@@ -8,8 +8,8 @@ ENV PATH=${GRADLE_HOME}/bin:$PATH
 RUN apt update &&\
     apt -y install wget &&\
     apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1 libgfortran5 &&\
-    wget https://www.hec.usace.army.mil/nexus/repository/maven-releases/mil/army/usace/hec/hec-hms/4.12-beta-1-linux64/hec-hms-4.12-beta-1-linux64.tar.gz -P / &&\
-    tar -xvzf /hec-hms-4.12-beta-1-linux64.tar.gz -C / &&\
+    wget https://www.hec.usace.army.mil/nexus/repository/maven-releases/mil/army/usace/hec/hec-hms/4.12-beta.1-linux64/hec-hms-4.12-beta.1-linux64.tar.gz -P / &&\
+    tar -xvzf /hec-hms-4.12-beta.1-linux64.tar.gz -C / &&\
     apt -y install git &&\
     apt -y install unzip &&\
     wget https://services.gradle.org/distributions/gradle-7.3.1-bin.zip -P /tmp &&\

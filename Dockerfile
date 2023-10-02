@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim-bullseye as builder
+FROM ubuntu:20.04 as builder
 
 ENV TZ=America/New_York
 ENV GRADLE_HOME=/opt/gradle/latest

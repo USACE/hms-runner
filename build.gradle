@@ -40,7 +40,7 @@ jar {
     zip64 = true
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        attributes "Main-Class": "usace.cc.plugin.hmsrunner.HmsRunner"
+        attributes "Main-Class": "usace.cc.plugin.hmsrunner.hmsrunner"
     }
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11

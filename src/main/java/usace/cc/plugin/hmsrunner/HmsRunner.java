@@ -12,7 +12,7 @@ import hms.model.Project;
 import hms.model.project.ComputeSpecification;
 import hms.Hms;
 
-public class HmsRunner  {
+public class hmsrunner  {
     public static final String PLUGINNAME = "hmsrunner";
     /**
      * @param args the command line arguments

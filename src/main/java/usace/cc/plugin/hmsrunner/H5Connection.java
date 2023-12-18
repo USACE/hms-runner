@@ -81,6 +81,27 @@ public class H5Connection {
             H5.H5Fclose(destId);
         }
     }
+    public void writeResSimReleases(double[] flows, String datasetName) throws Exception{
+        int datasetId = openDataset(datasetName, this.fileId);
+        //find dimensions to build an array to read.
+        long[] dims = new long[2];
+        long[] maxdims = new long[2];
+        int spaceId = H5.H5Dget_space(datasetId);
+        H5.H5Sget_simple_extent_dims(spaceId, dims, maxdims);
+        long totdems = dims[0]*dims[1];
+        float[] dset = new float[(int)totdems];
+        //read dataset to an array
+        H5.H5Dread(datasetId,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
+        for(int i=0;i<flows.length;i++){
+            int flowloc = 3*i + 2;
+            dset[flowloc] = (float)flows[i];
+        }
+        //check if data fits in the table?
+        //dataset exists so we need to write to the dataset.
+        //try catch finally, with a try catch around close
+        H5.H5Dwrite(datasetId, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset);
+        H5.H5Dclose(datasetId);
+    }
     public void write(double[] flows, double[] times, String datasetName) throws Exception{
         int datasetId = openDataset(datasetName, this.fileId);
         int totlength = flows.length + times.length;

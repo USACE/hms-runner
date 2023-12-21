@@ -1,6 +1,9 @@
 package usace.cc.plugin.hmsrunner;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +84,36 @@ public class H5Connection {
             H5.H5Fclose(destId);
         }
     }
+
+    private class ObservedFlowData {
+        String date;
+        double timestep;
+        float flowVal;
+        ObservedFlowData(ByteBuffer databuf, int dbposition){
+            readBuffer(databuf,dbposition);
+        }
+        void readBuffer(ByteBuffer databuf, int dbposition) {
+            ByteBuffer stringbuf = databuf.duplicate();
+            stringbuf.position(dbposition);
+            stringbuf.limit(dbposition + 36);//18 
+            byte[] bytearr = new byte[stringbuf.remaining()];
+            stringbuf.get(bytearr);
+            this.date = new String(bytearr, Charset.forName("UTF-8")).trim();
+            this.timestep = databuf.getDouble(dbposition + 36);
+            this.flowVal = databuf.getFloat(dbposition + 44);
+        }
+        void writeBuffer(ByteBuffer databuf, int dbposition) {
+            byte[] temp_str = this.date.getBytes(Charset.forName("UTF-8"));
+            int arraylen = (temp_str.length > 36) ? 36 : temp_str.length;
+            for (int ndx = 0; ndx < arraylen; ndx++)
+                databuf.put(dbposition +ndx, temp_str[ndx]);
+            for (int ndx = arraylen; ndx < 36; ndx++)
+                databuf.put(dbposition + arraylen, (byte) 0);//pad whitespace
+            databuf.putDouble(dbposition +36, this.timestep);
+            databuf.putFloat(dbposition + 44, this.flowVal);
+        }
+    }
+
     public void writeResSimReleases(double[] flows, String datasetName) throws Exception{
         int datasetId = openDataset(datasetName, this.fileId);
         //find dimensions to build an array to read.
@@ -88,18 +121,38 @@ public class H5Connection {
         long[] maxdims = new long[2];
         int spaceId = H5.H5Dget_space(datasetId);
         H5.H5Sget_simple_extent_dims(spaceId, dims, maxdims);
-        long totdems = dims[0]*dims[1];
-        float[] dset = new float[(int)totdems];
+        long totdems = dims[0];//*3;//dims[1];
+        int strtype_id = H5.H5Tcopy(HDF5Constants.H5T_C_S1);
+        H5.H5Tset_size(strtype_id, 36);
+
+        int memId = H5.H5Tcreate(HDF5Constants.H5T_COMPOUND, 48);
+        H5.H5Tinsert(memId, "Date", 0, strtype_id);
+        H5.H5Tinsert(memId, "Simulation Time", 36, HDF5Constants.H5T_IEEE_F64LE);
+        H5.H5Tinsert(memId, "Value", 44, HDF5Constants.H5T_IEEE_F32LE);
+        byte[] dset = new byte[(int)totdems*48];
         //read dataset to an array
-        H5.H5Dread(datasetId,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
-        for(int i=0;i<flows.length;i++){
-            int flowloc = 3*i + 2;
-            dset[flowloc] = (float)flows[i];
+        H5.H5Dread(datasetId,memId,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
+        ByteBuffer inbuf = ByteBuffer.wrap(dset);
+        inbuf.order(ByteOrder.nativeOrder());
+        ObservedFlowData[] inObsFlow = new ObservedFlowData[(int)dims[0]];
+        for (int i=0;i<dims[0];i++){
+            inObsFlow[i] = new ObservedFlowData(inbuf, i*48);
         }
+        inObsFlow[0].flowVal = (float)flows[0];//repeat first?
+        for(int i=0;i<flows.length;i++){
+            inObsFlow[i+1].flowVal = (float)flows[i];
+        }
+        inObsFlow[inObsFlow.length-1].flowVal = (float)flows[flows.length-1];//repeat last?
         //check if data fits in the table?
         //dataset exists so we need to write to the dataset.
         //try catch finally, with a try catch around close
-        H5.H5Dwrite(datasetId, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset);
+        byte[] dset_data = new byte[(int)dims[0]*48];
+        ByteBuffer outbuf = ByteBuffer.wrap(dset_data);
+        outbuf.order(ByteOrder.nativeOrder());
+        for (int i=0;i<dims[0];i++){
+            inObsFlow[i].writeBuffer(outbuf, i*48);
+        }
+        H5.H5Dwrite(datasetId, memId, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset_data);
         H5.H5Dclose(datasetId);
     }
     public void write(double[] flows, double[] times, String datasetName) throws Exception{

@@ -88,6 +88,8 @@ public class hmsrunner  {
                     DssToHdfObservedFlowsAction dofa = new DssToHdfObservedFlowsAction(a);
                     dofa.computeAction();
                     break;
+                case "dss_to_hdf_pool_elevations":
+                    break;
                 case "copy_precip_table":
                     CopyPrecipAction ca = new CopyPrecipAction(a);
                     ca.computeAction();

@@ -8,10 +8,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
 import hdf.hdf5lib.exceptions.HDF5Exception;
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
+import jakarta.ws.rs.NotFoundException;
 
 public class H5Connection {
     private String path;
@@ -154,6 +157,60 @@ public class H5Connection {
         }
         H5.H5Dwrite(datasetId, memId, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset_data);
         H5.H5Dclose(datasetId);
+    }
+    public void writePoolElevation(double stageValue, String icPointName) throws Exception{
+        String ICPointNamesTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Names";
+        String ICPointElevationsTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Elevations";
+        //open names table, find index of point name
+        //open source dataset
+        int sourceId = openDataset(ICPointNamesTable, this.fileId);
+        //find dimensions to build an array to read.
+        long[] dims = new long[2];
+        long[] maxdims = new long[2];
+        int spaceId = H5.H5Dget_space(sourceId);
+        H5.H5Sget_simple_extent_dims(spaceId, dims, maxdims);
+        long totdems = dims[0];
+        int memId = H5.H5Tcreate(HDF5Constants.H5T_STRING, 32);
+  
+        byte[] dset = new byte[(int)totdems*32];//names is a string
+        //read dataset to an array
+        H5.H5Dread(sourceId,memId,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
+        H5.H5Dclose(sourceId);
+        //find index of provided name
+        int index = -1;
+        ByteBuffer buf = ByteBuffer.wrap(dset);
+        int startPosition = 0;
+        for(int i=0;i<totdems;i++){
+            buf.position(startPosition);
+            startPosition += 32;
+            buf.limit(startPosition);
+            byte[] pointbytes = new byte[buf.remaining()];
+            buf.get(pointbytes);
+            String pointName = new String(pointbytes, Charset.forName("UTF-8")).trim();
+            if(pointName.equals(icPointName)){
+                index = i;
+                break;
+            }
+        }
+        if(index == -1){
+            throw new NotFoundException("IC Point Name not found");
+        }
+        //open elevations table and read elevation values
+        int elesourceId = openDataset(ICPointElevationsTable, this.fileId);
+        //find dimensions to build an array to read.
+        long[] eledims = new long[2];
+        long[] elemaxdims = new long[2];
+        int elespaceId = H5.H5Dget_space(sourceId);
+        H5.H5Sget_simple_extent_dims(elespaceId, eledims, elemaxdims);
+        long eletotdems = dims[0];
+        float[] eledset = new float[(int)eletotdems];//elevations is a string
+        //read dataset to an array
+        H5.H5Dread(elesourceId,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,eledset);
+        //change elevation value at given name's index to the stageValue
+        eledset[index] = (float)stageValue;
+        //write
+        H5.H5Dwrite(elesourceId, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, eledset);
+        H5.H5Dclose(elesourceId);
     }
     public void write(double[] flows, double[] times, String datasetName) throws Exception{
         int datasetId = openDataset(datasetName, this.fileId);

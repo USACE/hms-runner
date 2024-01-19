@@ -72,4 +72,22 @@ public class H5ConnectionTest {
             e.printStackTrace();
         }
     }
+    @Test
+    public void TestUpdatePoolElevation(){
+        System.out.println("testing update pool elevation");
+        H5Connection connection = new H5Connection("/workspaces/hms-runner/testdata/ElkRiver_at_Sutton.p01.hdf");
+        try {
+            connection.open();
+            connection.writePoolElevation(14, "SuttonPool");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        try {
+            connection.close();
+        } catch (HDF5LibraryException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }

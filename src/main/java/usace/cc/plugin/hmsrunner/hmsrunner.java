@@ -89,6 +89,8 @@ public class hmsrunner  {
                     dofa.computeAction();
                     break;
                 case "dss_to_hdf_pool_elevations":
+                    DsstoHdfPoolElevationAction dpea = new DsstoHdfPoolElevationAction(a);
+                    dpea.computeAction();
                     break;
                 case "copy_precip_table":
                     CopyPrecipAction ca = new CopyPrecipAction(a);

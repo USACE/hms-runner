@@ -19,8 +19,8 @@
                 "CC_AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
                 "CC_AWS_S3_BUCKET": "cc-store",
                 "CC_ROOT": "cc_store",
-                "CC_MANIFEST_ID": "kanawha/hms-full",
-                "CC_EVENT_NUMBER": 455,
+                "CC_MANIFEST_ID": "kanawha/hms-ressim",
+                "CC_EVENT_NUMBER": 298,
                 "CC_S3_ENDPOINT": "host.docker.internal:9000",
                 "CC_S3_MOCK": true,
                 "CC_S3_DISABLE_SSL": true,
@@ -34,6 +34,14 @@
                 "FFRD_S3_DISABLE_SSL": true,
                 "FFRD_S3_FORCE_PATH_STYLE": true,
             }
+        },{
+            "type": "java",
+            "name": "Launch Current File with ENV",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:HEC-HMS-4.12/jre/lib/",
+            "args": "",
+            "envFile": "/workspaces/.env" 
         }
     ]
 }

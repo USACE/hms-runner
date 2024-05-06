@@ -4,10 +4,17 @@ import usace.cc.plugin.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.jcodec.common.io.FileChannelWrapper;
+import org.python.core.io.FileIO;
+
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
 import hms.Hms;
@@ -38,34 +45,40 @@ public class hmsrunner  {
         String hmsFilePath = "";
         
         for(DataSource i : mp.getInputs()){
-            if (i.getName().contains(".hms")){
-                //compute passing in the event config portion of the model payload
-                hmsFilePath = modelOutputDestination + i.getName();
-            }
-            byte[] bytes = pm.getFile(i, 0);
-            //write bytes locally.
-            File f = new File(modelOutputDestination, i.getName());
             try {
+                if (i.getName().contains(".hms")){
+                    //compute passing in the event config portion of the model payload
+                    hmsFilePath = modelOutputDestination + i.getName();
+                }
+                byte[] bytes = pm.getFile(i, 0);//convert to file stream
+                InputStream fs = pm.fileReader(i, 0);
+                //write bytes locally.
+                
+                File f = new File(i.getName());
+            
                 if (!f.getParentFile().exists()){
                     f.getParentFile().mkdirs();
                 }
                 if (!f.createNewFile()){
                     f.delete();
-                    if(!f.createNewFile()){
+                    try(FileOutputStream output = new FileOutputStream(f)){
+                        fs.transferTo(output);
+                    } catch (Exception e){
+                        e.printStackTrace();
                         System.out.println(f.getPath() + " cant create or delete this location");
-                        return;
+                        System.exit(1);
                     }
+
                 }
-            } catch (IOException e) {
+                try(FileOutputStream outputStream = new FileOutputStream(f)){
+                    outputStream.write(bytes);
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
-                return;
+                System.exit(1);
+                //return;
             }
-            try(FileOutputStream outputStream = new FileOutputStream(f)){
-                outputStream.write(bytes);
-            }catch(Exception e){
-                e.printStackTrace();
-                return;
-            }
+
         }    
  
         //perform all actions
@@ -116,10 +129,12 @@ public class hmsrunner  {
 
         for (DataSource output : mp.getOutputs()) { 
             Path path = Paths.get(modelOutputDestination + output.getName());
-            byte[] data;
+            //byte[] data;
             try {
-                data = Files.readAllBytes(path);
-                pm.putFile(data, output,0);
+                //data = Files.readAllBytes(path);//convert to filestream
+                InputStream fs = Files.newInputStream(path);
+                pm.fileWriter(fs, output, 0);
+                //pm.putFile(data, output,0);
             } catch (IOException e) {
                 e.printStackTrace();
                 return;

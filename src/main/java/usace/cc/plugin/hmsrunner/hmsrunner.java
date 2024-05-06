@@ -137,6 +137,7 @@ public class hmsrunner  {
                 //pm.putFile(data, output,0);
             } catch (IOException e) {
                 e.printStackTrace();
+                System.exit(1);
                 return;
             } 
         }

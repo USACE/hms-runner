@@ -4,16 +4,14 @@ import usace.cc.plugin.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.jcodec.common.io.FileChannelWrapper;
-import org.python.core.io.FileIO;
 
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;

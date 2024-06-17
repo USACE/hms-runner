@@ -52,7 +52,7 @@ public class hmsrunner  {
                 InputStream fs = pm.fileReader(i, 0);
                 //write bytes locally.
                 
-                File f = new File(i.getName());
+                File f = new File(modelOutputDestination,i.getName());
             
                 if (!f.getParentFile().exists()){
                     f.getParentFile().mkdirs();

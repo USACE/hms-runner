@@ -10,7 +10,7 @@ repositories {
     maven{
         name = "GitHubPackages"
         // The url of the repository that contains the published artifacts
-        url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
+        url = "https://maven.pkg.github.com/USACE/cc-java-sdk"
         credentials {
             username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
             password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")

@@ -53,18 +53,24 @@ public class hmsrunner  {
                 //write bytes locally.
                 
                 File f = new File(modelOutputDestination,i.getName());
-            
+                
                 if (!f.getParentFile().exists()){
                     f.getParentFile().mkdirs();
                 }
                 if (!f.createNewFile()){
-                    f.delete();
+                    System.out.println(f.getPath() + " cant create or delete this location");
+                    System.exit(1);
                 }
                 try(FileOutputStream output = new FileOutputStream(f)){
+                    if(f.canWrite()){
+                        System.out.println(f.getPath() + " can write");
+                    }else{
+                        System.out.println(f.getPath() + " cannot write");
+                    }
                     fs.transferTo(output);
                 } catch (Exception e){
                     e.printStackTrace();
-                    System.out.println(f.getPath() + " cant create or delete this location");
+                    System.out.println(f.getPath() + " had issues transferring byte stream");
                     System.exit(1);
                 }
             } catch (Exception e) {

@@ -50,7 +50,7 @@ public class hmsrunner  {
                     //compute passing in the event config portion of the model payload
                     hmsFilePath = modelOutputDestination + i.getName();
                 }
-                byte[] bytes = pm.getFile(i, 0);//convert to file stream
+                //byte[] bytes = pm.getFile(i, 0);//convert to file stream
                 InputStream fs = pm.fileReader(i, 0);
                 //write bytes locally.
                 
@@ -61,17 +61,13 @@ public class hmsrunner  {
                 }
                 if (!f.createNewFile()){
                     f.delete();
-                    try(FileOutputStream output = new FileOutputStream(f)){
-                        fs.transferTo(output);
-                    } catch (Exception e){
-                        e.printStackTrace();
-                        System.out.println(f.getPath() + " cant create or delete this location");
-                        System.exit(1);
-                    }
-
                 }
-                try(FileOutputStream outputStream = new FileOutputStream(f)){
-                    outputStream.write(bytes);
+                try(FileOutputStream output = new FileOutputStream(f)){
+                    fs.transferTo(output);
+                } catch (Exception e){
+                    e.printStackTrace();
+                    System.out.println(f.getPath() + " cant create or delete this location");
+                    System.exit(1);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

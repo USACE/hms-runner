@@ -201,7 +201,7 @@ public class H5Connection {
         //find dimensions to build an array to read.
         long[] eledims = new long[2];
         long[] elemaxdims = new long[2];
-        int elespaceId = H5.H5Dget_space(sourceId);
+        int elespaceId = H5.H5Dget_space(elesourceId);
         H5.H5Sget_simple_extent_dims(elespaceId, eledims, elemaxdims);
         long eletotdems = dims[0];
         float[] eledset = new float[(int)eletotdems];//elevations is a string
@@ -219,7 +219,7 @@ public class H5Connection {
         //find dimensions to build an array to read.
         long[] pooldims = new long[2];
         long[] poolmaxdims = new long[2];
-        int poolspaceId = H5.H5Dget_space(sourceId);
+        int poolspaceId = H5.H5Dget_space(poolsourceId);
         H5.H5Sget_simple_extent_dims(poolspaceId, pooldims, poolmaxdims);
         long pooltotdems = dims[0];
 

@@ -203,7 +203,7 @@ public class H5Connection {
         long[] elemaxdims = new long[2];
         int elespaceId = H5.H5Dget_space(elesourceId);
         H5.H5Sget_simple_extent_dims(elespaceId, eledims, elemaxdims);
-        long eletotdems = dims[0];
+        long eletotdems = eledims[0];
         float[] eledset = new float[(int)eletotdems];//elevations is a string
         //read dataset to an array
         H5.H5Dread(elesourceId,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,eledset);
@@ -221,7 +221,7 @@ public class H5Connection {
         long[] poolmaxdims = new long[2];
         int poolspaceId = H5.H5Dget_space(poolsourceId);
         H5.H5Sget_simple_extent_dims(poolspaceId, pooldims, poolmaxdims);
-        long pooltotdems = dims[0];
+        long pooltotdems = pooldims[0];
 
         float[] pooldset = new float[(int)pooltotdems];//elevations is a string
         //read dataset to an array

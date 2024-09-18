@@ -156,9 +156,11 @@ public class H5Connection {
         H5.H5Dwrite(datasetId, memId, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset_data);
         H5.H5Dclose(datasetId);
     }
-    public void writePoolElevation(double stageValue, String icPointName) throws Exception{
+    public void writePoolElevation(double stageValue, String icPointName, String TwoDFlowAreaName, String csvCells) throws Exception{
         String ICPointNamesTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Names";
         String ICPointElevationsTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Elevations";
+        String StartingPoolCellTable = "Event Conditions/Unsteady/Initial Conditions/2D Flow Areas";
+        String[] stringcells = csvCells.split(",");
         //open names table, find index of point name
         //open source dataset
         int sourceId = openDataset(ICPointNamesTable, this.fileId);
@@ -193,6 +195,7 @@ public class H5Connection {
         if(index == -1){
             throw new NotFoundException("IC Point Name not found");
         }
+
         //open elevations table and read elevation values
         int elesourceId = openDataset(ICPointElevationsTable, this.fileId);
         //find dimensions to build an array to read.
@@ -209,6 +212,29 @@ public class H5Connection {
         //write
         H5.H5Dwrite(elesourceId, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, eledset);
         H5.H5Dclose(elesourceId);
+
+        //open 2d flow area table
+        StartingPoolCellTable += "/" + TwoDFlowAreaName;
+        int poolsourceId = openDataset(StartingPoolCellTable, this.fileId);
+        //find dimensions to build an array to read.
+        long[] pooldims = new long[2];
+        long[] poolmaxdims = new long[2];
+        int poolspaceId = H5.H5Dget_space(sourceId);
+        H5.H5Sget_simple_extent_dims(poolspaceId, pooldims, poolmaxdims);
+        long pooltotdems = dims[0];
+
+        float[] pooldset = new float[(int)pooltotdems];//elevations is a string
+        //read dataset to an array
+        H5.H5Dread(poolsourceId,HDF5Constants.H5T_NATIVE_FLOAT,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,pooldset);
+        //change elevation value at given cell locations index to the stageValue
+        for(String sc : stringcells){
+            int cellLoc = Integer.parseInt(sc);
+            pooldset[cellLoc] = (float)stageValue;
+        }
+        
+        //write
+        H5.H5Dwrite(poolsourceId, HDF5Constants.H5T_IEEE_F32LE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, pooldset);
+        H5.H5Dclose(poolsourceId);
     }
     public void write(double[] flows, double[] times, String datasetName) throws Exception{
         int datasetId = openDataset(datasetName, this.fileId);

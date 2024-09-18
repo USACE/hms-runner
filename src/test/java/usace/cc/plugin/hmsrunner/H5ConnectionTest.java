@@ -51,7 +51,7 @@ public class H5ConnectionTest {
     @Test
     public void TestCopyTo(){
         System.out.println("testing copy to");
-        H5Connection connection = new H5Connection("/workspaces/hms-runner/testdata/ExportedPrecip.p01.hdf");
+        H5Connection connection = new H5Connection("/workspaces/hms-runner/testdata/SST_normalized_ExportedPrecip.p01.hdf");
         try {
             connection.open();
         } catch (Exception e) {
@@ -60,7 +60,7 @@ public class H5ConnectionTest {
         }
         String datasetName = "Event Conditions/Meteorology/Precipitation/Values";
         try{
-            connection.copyTo(datasetName, datasetName,"/workspaces/hms-runner/testdata/ElkMiddle.p01.hdf");
+            connection.copyTo(datasetName, datasetName,"/workspaces/hms-runner/testdata/Duwamish_17110013.p01.tmp.hdf");
         }catch(Exception e){
             Assert.fail(e);
         }
@@ -78,7 +78,7 @@ public class H5ConnectionTest {
         H5Connection connection = new H5Connection("/workspaces/hms-runner/testdata/ElkRiver_at_Sutton.p01.hdf");
         try {
             connection.open();
-            connection.writePoolElevation(14, "SuttonPool");
+            connection.writePoolElevation(14, "SuttonPool","Perimeter 1", "0,1,2,3");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

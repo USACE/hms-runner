@@ -51,7 +51,7 @@ public class DsstoHdfPoolElevationAction {
             double value = tsc.values[0];
             //write first value of timeseries to destination
             try {
-                writer.writePoolElevation(value,destination.getDataPaths()[datasetPathIndex]);//expected datasetPathIndex will be IC Point Name
+                writer.writePoolElevation(value,destination.getDataPaths()[datasetPathIndex], destination.getDataPaths()[1], destination.getDataPaths()[2]);//expected datasetPathIndex will be IC Point Name
             } catch (Exception e) {
                 e.printStackTrace();
                 return;

@@ -97,6 +97,10 @@ public class hmsrunner  {
                     DssToHdfAction da = new DssToHdfAction(a);
                     da.computeAction();
                     break;
+                case "dss_to_hdf_tsout": 
+                    DssToHdfActionTSOut dat = new DssToHdfActionTSOut(a);
+                    dat.computeAction();
+                    break;
                 case "dss_to_hdf_observations": 
                     DssToHdfObservedFlowsAction dofa = new DssToHdfObservedFlowsAction(a);
                     dofa.computeAction();

@@ -9,9 +9,9 @@ import usace.cc.plugin.DataSource;
 import usace.cc.plugin.Payload;
 import usace.cc.plugin.PluginManager;
 
-public class DssToHdfAction {
+public class DssToHdfActionTSOut {
     private Action action;
-    public DssToHdfAction(Action a) {
+    public DssToHdfActionTSOut(Action a) {
         action = a;
     }
     public void computeAction(){
@@ -42,12 +42,6 @@ public class DssToHdfAction {
         //read time series from source
         int datasetPathIndex = 0;
         for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
-            boolean hasMultiplier = payload.getAttributes().containsKey(p + "- multiplier");
-            float multiplier = 1.0f;
-            if (hasMultiplier){
-                float mult = Float.parseFloat((String) payload.getAttributes().get(p + " - multiplier"));
-                multiplier = mult;
-            }
             TimeSeriesContainer tsc = new TimeSeriesContainer();
             tsc.fullName = p;
             status = reader.read(tsc,true);
@@ -57,17 +51,21 @@ public class DssToHdfAction {
                 error.printMessage();
                 break;
             }
-            double[] values = tsc.values;
-            double[] times = new double[values.length];
+            double[] values = new double[tsc.values.length+1];
+            double[] times = new double[tsc.values.length+1];
             double delta = 1.0/24.0;//test with other datasets - probably need to make it dependent on d part.
-            double timestep = 0;
+            double timestep = -0.5/24.0;
             int i = 0;
-            for(double f : values){
-                values[i] = f*multiplier;
+            double lastval = 0.0;
+            for(double f : tsc.values){
+                values[i] = f;
                 times[i] = timestep;
                 timestep += delta;
                 i++;
+                lastval = f;
             }
+            times[i] = timestep;
+            values[i] = lastval;
             //write time series to destination
             try {
                 writer.write(values,times,destination.getDataPaths()[datasetPathIndex]);

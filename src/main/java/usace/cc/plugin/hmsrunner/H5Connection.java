@@ -48,6 +48,37 @@ public class H5Connection {
         }
         
     }*/
+    public String[] readReflinesNamesColumn(int length) throws Exception{
+        String ReflinesNameTable = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Reference Lines/Name";
+        //open names table, find index of point name
+        //open source dataset
+        int sourceId = openDataset(ReflinesNameTable, this.fileId);
+        //find dimensions to build an array to read.
+        long[] dims = new long[2];
+        long[] maxdims = new long[2];
+        int spaceId = H5.H5Dget_space(sourceId);
+        H5.H5Sget_simple_extent_dims(spaceId, dims, maxdims);
+        long totdems = dims[0];
+        int memId = H5.H5Tcreate(HDF5Constants.H5T_STRING, length);
+  
+        byte[] dset = new byte[(int)totdems*length];//names is a string
+        //read dataset to an array
+        H5.H5Dread(sourceId,memId,HDF5Constants.H5S_ALL,HDF5Constants.H5S_ALL,HDF5Constants.H5P_DEFAULT,dset);
+        H5.H5Dclose(sourceId);
+        ByteBuffer buf = ByteBuffer.wrap(dset);
+        String[] Names = new String[(int)totdems];
+        int startPosition = 0;
+        for(int i=0;i<totdems;i++){
+            buf.position(startPosition);
+            startPosition += length;
+            buf.limit(startPosition);
+            byte[] bytes = new byte[buf.remaining()];
+            buf.get(bytes);
+            String Name = new String(bytes, Charset.forName("UTF-8")).trim();
+            Names[i] = Name;
+        }
+        return Names;
+    }
     public void copyTo(String srcdatasetName, String destDatasetName, String destFilePath) throws Exception{
         File f = new File(destFilePath);
         int destId = HDF5Constants.H5I_INVALID_HID;

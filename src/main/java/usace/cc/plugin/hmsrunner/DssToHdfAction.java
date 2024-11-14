@@ -38,7 +38,7 @@ public class DssToHdfAction {
         //read time series from source
         int datasetPathIndex = 0;
         for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
-            boolean hasMultiplier = action.getParameters().containsKey(p + "- multiplier");
+            boolean hasMultiplier = action.getParameters().containsKey(p + " - multiplier");
             float multiplier = 1.0f;
             if (hasMultiplier){
                 float mult = Float.parseFloat((String) action.getParameters().get(p + " - multiplier").getPaths()[0]);

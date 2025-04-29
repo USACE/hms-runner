@@ -38,7 +38,7 @@ public MetFileManager(String[] lines){
                 }
             }
         }
-        if( line.equals("END:")){
+        if( line.contains("END:")){
             String[] ablines = (String[])blines.toArray();
             Block b = new Block(ablines);
                 if(isPrecip){
@@ -59,9 +59,12 @@ public MetFileManager(String[] lines){
             isValid = false;
         }
     }
+    System.out.println(temp.size());
+    System.out.println(precip.size());
+    System.out.println(blocks.size());
     if(temp.size()==1){
         if (precip.size()==1){
-            if(blocks.size()==1){
+            if(blocks.size()>=1){
                 EverythingElse = (Block[])blocks.toArray();
                 TemperatureGrids = (Block[])temp.toArray();
                 PrecipGrids = (Block[])precip.toArray();

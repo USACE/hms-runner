@@ -1,3 +1,6 @@
+package usace.cc.plugin.hmsrunner;
+
+
 public class Event {
     ///represents a table of data that is loaded into tiledb or a csv
     public Integer EventNumber;

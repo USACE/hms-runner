@@ -13,9 +13,11 @@ public class Tester {
             String stringData = data.toString();
             String[] lines = stringData.split("\n");
             MetFileManager m = new MetFileManager(lines);
+
             if (m.IsValid){
                 System.out.println("valid");
             }else{
+                //System.out.println(m.PrecipGrids[0].Lines);
                 System.out.println("invalid");
             }
 

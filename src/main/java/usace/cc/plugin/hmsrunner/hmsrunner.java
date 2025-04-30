@@ -3,15 +3,9 @@ package usace.cc.plugin.hmsrunner;
 import usace.cc.plugin.*;
 
 import java.io.File;
-import java.io.FileOutputStream;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.util.Optional;
 
 import hms.model.Project;
 import hms.model.project.ComputeSpecification;
@@ -29,14 +23,14 @@ public class hmsrunner  {
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name
-        String modelName = (String) mp.getAttributes().get("model_name");
+        Optional<String> modelName = mp.getAttributes().get("model_name");
         //get simulation name?
-        String simulationName = (String) mp.getAttributes().get("simulation");
+        Optional<String> simulationName =  mp.getAttributes().get("simulation");
         //get variant if it exists
-        String variantName = (String) mp.getAttributes().get("variant");
+        Optional<String> variantName = mp.getAttributes().get("variant");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
-        String modelOutputDestination = "/model/"+modelName+"/";
+        String modelOutputDestination = "/model/"+modelName.get()+"/";
         File dest = new File(modelOutputDestination);
         deleteDirectory(dest);
         //download the payload to list all input files
@@ -49,10 +43,9 @@ public class hmsrunner  {
                     hmsFilePath = modelOutputDestination + i.getName();
                 }
                 //byte[] bytes = pm.getFile(i, 0);//convert to file stream
-                InputStream fs = pm.fileReader(i, 0);
-                //write bytes locally.
-                
                 File f = new File(modelOutputDestination,i.getName());
+                mp.copyFileToLocal(i.getName(), "default", f.getAbsolutePath());
+                /*              
                 
                 if (!f.getParentFile().exists()){
                     f.getParentFile().mkdirs();
@@ -72,7 +65,7 @@ public class hmsrunner  {
                     e.printStackTrace();
                     System.out.println(f.getPath() + " had issues transferring byte stream");
                     System.exit(1);
-                }
+                }  */
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -83,14 +76,14 @@ public class hmsrunner  {
  
         //perform all actions
         for (Action a : mp.getActions()){
-            pm.LogMessage(new Message(a.getDescription()));
-            switch(a.getName()){
+            pm.logMessage(new Message(a.getDescription()));
+            switch(a.getType()){
                 case "compute_forecast":
-                    ComputeForecastAction cfa = new ComputeForecastAction(a, simulationName, variantName);
+                    ComputeForecastAction cfa = new ComputeForecastAction(a, simulationName.get(), variantName.get());
                     cfa.computeAction();
                     break;
                 case "compute_simulation":
-                    ComputeSimulationAction csa = new ComputeSimulationAction(a, simulationName);
+                    ComputeSimulationAction csa = new ComputeSimulationAction(a, simulationName.get());
                     csa.computeAction();
                     break;
                 case "dss_to_hdf": 
@@ -115,7 +108,7 @@ public class hmsrunner  {
                     break;
                 case "export_excess_precip":
                     Project project = Project.open(hmsFilePath);
-                    ComputeSpecification spec = project.getComputeSpecification(simulationName);//move to export precip action eventually
+                    ComputeSpecification spec = project.getComputeSpecification(simulationName.get());//move to export precip action eventually
                     ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
                     ea.computeAction();
                     project.close();
@@ -136,10 +129,11 @@ public class hmsrunner  {
             //byte[] data;
             try {
                 //data = Files.readAllBytes(path);//convert to filestream
-                InputStream fs = Files.newInputStream(path);
-                pm.fileWriter(fs, output, 0);
+                //InputStream fs = Files.newInputStream(path);
+                mp.copyFileToRemote(output.getName(), "default", path.toString());
+                //pm.fileWriter(fs, output, 0);
                 //pm.putFile(data, output,0);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
                 return;

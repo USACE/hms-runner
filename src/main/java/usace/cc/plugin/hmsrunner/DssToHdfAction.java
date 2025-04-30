@@ -1,5 +1,8 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.util.Map;
+import java.util.Optional;
+
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
@@ -14,11 +17,16 @@ public class DssToHdfAction {
     }
     public void computeAction(){
         //find source 
-        DataSource source = action.getParameters().get("source");
+        Optional<DataSource> opSource = action.getInputDataSource("source");
+        if(!opSource.isPresent()){
+            System.out.println("could not find input datasource named source");
+            return;
+        }
+        DataSource source = opSource.get();
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths()[0]);//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -26,9 +34,14 @@ public class DssToHdfAction {
             return;
         }
         //find destination parameter
-        DataSource destination = action.getParameters().get("destination");
+        Optional<DataSource> opDestination = action.getOutputDataSource("destination");
+        if(!opDestination.isPresent()){
+            System.out.println("could not find output datasource named destination");
+            return;
+        }
+        DataSource destination = opDestination.get();
         //create hdf writer
-        H5Connection writer = new H5Connection(destination.getPaths()[0]);//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths().get("default"));//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {
@@ -36,16 +49,15 @@ public class DssToHdfAction {
             return;
         }
         //read time series from source
-        int datasetPathIndex = 0;
-        for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
-            boolean hasMultiplier = action.getParameters().containsKey(p + " - multiplier");
-            float multiplier = 1.0f;
-            if (hasMultiplier){
-                float mult = Float.parseFloat((String) action.getParameters().get(p + " - multiplier").getPaths()[0]);
+        for(Map.Entry<String,String> es : source.getDataPaths().entrySet()){//assumes datapaths for source and dest are ordered the same.
+            Optional<Double> hasMultiplier = action.getAttributes().get(es.getValue() + "- multiplier");
+            Double multiplier = 1.0d;
+            if (hasMultiplier.isPresent()){
+                Double mult = (hasMultiplier.get());
                 multiplier = mult;
             }
             TimeSeriesContainer tsc = new TimeSeriesContainer();
-            tsc.fullName = p;
+            tsc.fullName = es.getValue();
             status = reader.read(tsc,true);
             if (status <0){
                 //panic?
@@ -66,12 +78,11 @@ public class DssToHdfAction {
             }
             //write time series to destination
             try {
-                writer.write(values,times,destination.getDataPaths()[datasetPathIndex]);
+                writer.write(values,times,destination.getDataPaths().get(es.getKey()));
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 return;
             }
-            datasetPathIndex++;
                                         
         }
         //close reader
@@ -80,7 +91,7 @@ public class DssToHdfAction {
         try {
             writer.close();
         } catch (HDF5LibraryException e) {
-            e.printStackTrace();
+            return;
         }
     }
 }

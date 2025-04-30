@@ -1,5 +1,7 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.util.Optional;
+
 import hms.model.Project;
 import usace.cc.plugin.Action;
 
@@ -11,12 +13,17 @@ public class ComputeSimulationAction {
         this.simulationName = simname;
     }
     public void computeAction(){
-        String hmsFilePath = action.getParameters().get("project_file").getPaths()[0];
-        System.out.println("opening project " + hmsFilePath);
-        Project project = Project.open(hmsFilePath);
-        System.out.println("preparing to run Simulation " + simulationName);
-        project.computeRun(simulationName);
-        System.out.println("Simulation run completed for " + hmsFilePath);
-        project.close();
+        Optional<String> hmsFilePathResult = action.getAttributes().get("project_file");
+        if(hmsFilePathResult.isPresent()){
+            String hmsFilePath = hmsFilePathResult.get();
+            System.out.println("opening project " + hmsFilePath);
+            Project project = Project.open(hmsFilePath);
+            System.out.println("preparing to run Simulation " + simulationName);
+            project.computeRun(simulationName);
+            System.out.println("Simulation run completed for " + hmsFilePath);
+            project.close();
+        }else{
+            System.out.println("could not get string at attribute named project_file");
+        }
     }
 }

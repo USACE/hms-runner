@@ -1,6 +1,8 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 
 import usace.cc.plugin.DataSource;
@@ -61,12 +63,43 @@ public class ComputeSimulationAllPlacementsAction {
         //update grid file based on storm name.
         gflines = gfm.write(opStormName.get(), opStormName.get());//assumes the temp grid and precip grid have the same name - not a safe assumption.
         // TODO write the updated gflines to disk. 
+        //get the basinfile prefix
+        Optional<DataSource> opBasinFiles = action.getInputDataSource("basinfiles");
+        if(!opBasinFiles.isPresent()){
+            System.out.println("could not find action input datasource basinfiles");
+            return;
+        }
+        DataSource basinFiles = opBasinFiles.get();
+        //get the controlfile prefix
+        Optional<DataSource> opControlFiles = action.getInputDataSource("controlfiles");
+        if(!opControlFiles.isPresent()){
+            System.out.println("could not find action input datasource controlfiles");
+            return;
+        }
+        DataSource controlFiles = opControlFiles.get();
         //loop over filtered events
         for(Event e : events){
             //update met file
+            mflines = mfm.write(e.X,e.Y);
+            // TODO write lines to disk.
             //write metfile locally
-            //update control file.
-            //get the basin file for this storm.
+            //update control file. - do we plan on having control files with the basin files?
+            String edate = e.StormDate;
+            String edashdate = edate.substring(0,4)+ "-" + edate.substring(4, 6) + "-" + edate.substring(6, 9);
+            String controlPostfix = edashdate + ".control";//check this - may need more pathing.
+            controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
+            InputStream cis = action.getInputStream(controlFiles, "default");
+            FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlPostfix,false);
+            cis.transferTo(cfs);//igorance is bliss
+            cfs.close();
+            //get the basin file for this storm. 
+            String basinPostfix = e.BasinPath;
+            basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix);
+            InputStream is = action.getInputStream(basinFiles, "default");
+            FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinPostfix,false);//check this may need to drop in a slightly different place.
+            is.transferTo(fs);//igorance is bliss
+            fs.close();
+
             //open hms project.
             //compute
             //export excess precip
@@ -75,8 +108,5 @@ public class ComputeSimulationAllPlacementsAction {
             //post excess precip
             //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
         }//next event
-            
-        
-
     }
 }

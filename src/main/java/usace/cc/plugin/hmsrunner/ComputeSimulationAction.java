@@ -7,23 +7,26 @@ import usace.cc.plugin.Action;
 
 public class ComputeSimulationAction {
     private Action action;
-    private String simulationName;
-    public ComputeSimulationAction(Action a, String simname) {
+    public ComputeSimulationAction(Action a) {
         this.action = a;
-        this.simulationName = simname;
     }
     public void computeAction(){
         Optional<String> hmsFilePathResult = action.getAttributes().get("project_file");
         if(hmsFilePathResult.isPresent()){
-            String hmsFilePath = hmsFilePathResult.get();
-            System.out.println("opening project " + hmsFilePath);
-            Project project = Project.open(hmsFilePath);
-            System.out.println("preparing to run Simulation " + simulationName);
-            project.computeRun(simulationName);
-            System.out.println("Simulation run completed for " + hmsFilePath);
-            project.close();
-        }else{
             System.out.println("could not get string at attribute named project_file");
+            return;
         }
+        Optional<String> simulationName =  action.getAttributes().get("simulation");
+        if(!simulationName.isPresent()){
+            System.out.println("could not get string at attribute named simulation");
+            return;
+        }
+        String hmsFilePath = hmsFilePathResult.get();
+        System.out.println("opening project " + hmsFilePath);
+        Project project = Project.open(hmsFilePath);
+        System.out.println("preparing to run Simulation " + simulationName.get());
+        project.computeRun(simulationName.get());
+        System.out.println("Simulation run completed for " + hmsFilePath);
+        project.close();
     }
 }

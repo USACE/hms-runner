@@ -7,11 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import hms.model.Project;
-import hms.model.project.ComputeSpecification;
 import hms.Hms;
 
-public class hmsrunner  {
+public class HmsRunner  {
     public static final String PLUGINNAME = "hmsrunner";
     /**
      * @param args the command line arguments
@@ -23,7 +21,7 @@ public class hmsrunner  {
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name
-        Optional<String> modelName = mp.getAttributes().get("model_name");
+        Optional<String> modelName = mp.getAttributes().get("model-name");
         //get simulation name?
         Optional<String> simulationName =  mp.getAttributes().get("simulation");
         //get variant if it exists
@@ -34,46 +32,8 @@ public class hmsrunner  {
         File dest = new File(modelOutputDestination);
         deleteDirectory(dest);
         //download the payload to list all input files
-        String hmsFilePath = "";
-        
-        for(DataSource i : mp.getInputs()){
-            try {
-                if (i.getName().contains(".hms")){
-                    //compute passing in the event config portion of the model payload
-                    hmsFilePath = modelOutputDestination + i.getName();
-                }
-                //byte[] bytes = pm.getFile(i, 0);//convert to file stream
-                File f = new File(modelOutputDestination,i.getName());
-                mp.copyFileToLocal(i.getName(), "default", f.getAbsolutePath());
-                /*              
-                
-                if (!f.getParentFile().exists()){
-                    f.getParentFile().mkdirs();
-                }
-                if (!f.createNewFile()){
-                    System.out.println(f.getPath() + " cant create or delete this location");
-                    System.exit(1);
-                }
-                try(FileOutputStream output = new FileOutputStream(f)){
-                    if(f.canWrite()){
-                        System.out.println(f.getPath() + " can write");
-                    }else{
-                        System.out.println(f.getPath() + " cannot write");
-                    }
-                    fs.transferTo(output);
-                } catch (Exception e){
-                    e.printStackTrace();
-                    System.out.println(f.getPath() + " had issues transferring byte stream");
-                    System.exit(1);
-                }  */
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-                //return;
-            }
-
-        }    
- 
+        ioManagerToLocal(mp, modelOutputDestination);    
+         
         //perform all actions
         for (Action a : mp.getActions()){
             pm.logMessage(new Message(a.getDescription()));
@@ -83,7 +43,7 @@ public class hmsrunner  {
                     cfa.computeAction();
                     break;
                 case "compute_simulation":
-                    ComputeSimulationAction csa = new ComputeSimulationAction(a, simulationName.get());
+                    ComputeSimulationAction csa = new ComputeSimulationAction(a);
                     csa.computeAction();
                     break;
                 case "dss_to_hdf": 
@@ -107,11 +67,8 @@ public class hmsrunner  {
                     ca.computeAction();
                     break;
                 case "export_excess_precip":
-                    Project project = Project.open(hmsFilePath);
-                    ComputeSpecification spec = project.getComputeSpecification(simulationName.get());//move to export precip action eventually
-                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
+                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a);
                     ea.computeAction();
-                    project.close();
                     break;
                 case "dss_to_csv":
                     DssToCsvAction dca = new DssToCsvAction(a);
@@ -120,7 +77,6 @@ public class hmsrunner  {
                 default:
                 break;
             }
-
         }
         //push results to s3.
 
@@ -140,6 +96,19 @@ public class hmsrunner  {
             } 
         }
         Hms.shutdownEngine();
+    }
+    private static void ioManagerToLocal(IOManager iomanager, String modelOutputDestination) {
+        for(DataSource i : iomanager.getInputs()){
+            try {
+                File f = new File(modelOutputDestination,i.getName());
+                iomanager.copyFileToLocal(i.getName(), "default", f.getAbsolutePath());
+
+            } catch (Exception e) {
+                System.out.println("failed copying datasource named " + i.getName() + " to local");
+                System.exit(1);
+            }
+        }
+        return;
     }
     private static boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();

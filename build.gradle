@@ -51,7 +51,7 @@ jar {
     exclude 'META-INF/*.DSA'
 
     manifest {
-        attributes "Main-Class": "usace.cc.plugin.hmsrunner.hmsrunner"
+        attributes "Main-Class": "usace.cc.plugin.hmsrunner.HmsRunner"
     }
 }
 

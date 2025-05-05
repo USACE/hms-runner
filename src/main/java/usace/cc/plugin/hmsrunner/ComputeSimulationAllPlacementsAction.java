@@ -3,10 +3,15 @@ package usace.cc.plugin.hmsrunner;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import hms.Hms;
 import hms.model.Project;
+import hms.model.data.SpatialVariableType;
+import hms.model.project.ComputeSpecification;
 import usace.cc.plugin.DataSource;
 import usace.cc.plugin.Action;
 
@@ -40,6 +45,26 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action attribute named simulation");
             return;
         }
+        Optional<String> metName =  action.getAttributes().get("met-name");
+        if(!metName.isPresent()){
+            System.out.println("could not find action attribute named met-name");
+            return;
+        }
+        Optional<String> controlName =  action.getAttributes().get("control-name");
+        if(!controlName.isPresent()){
+            System.out.println("could not find action attribute named control-name");
+            return;
+        }
+        Optional<String> basinName =  action.getAttributes().get("basin-name");
+        if(!basinName.isPresent()){
+            System.out.println("could not find action attribute named basin-name");
+            return;
+        }
+        Optional<String> exportedPrecipName =  action.getAttributes().get("exported-precip-name");
+        if(!exportedPrecipName.isPresent()){
+            System.out.println("could not find action attribute named exported-precip-name");
+            return;
+        }
         //get the storm dss file
         String modelOutputDestination = "/model/"+modelName.get()+"/";
         DataSource stormCatalog = opStormCatalog.get();
@@ -58,7 +83,7 @@ public class ComputeSimulationAllPlacementsAction {
         //filter storms table based on storm name
         Event[] events = table.getEventsByName(opStormName.get());
         //get the hms project files.
-        //how do i plan on figuring out the hms project files? one datasource with many paths
+        // one datasource for hms base directory with many paths
         Optional<DataSource> opHmsDataSource = action.getInputDataSource("hms");
         if(!opHmsDataSource.isPresent()){
             System.out.println("could not find action input datasource named hms");
@@ -81,19 +106,35 @@ public class ComputeSimulationAllPlacementsAction {
                 fs.close();
             }
         }
+        //one datsource to keep relative pathing structure with /data/
+        Optional<DataSource> opHmsDataDataSource = action.getInputDataSource("hms-data");
+        if(!opHmsDataDataSource.isPresent()){
+            System.out.println("could not find action input datasource named hms-data");
+        }
+        DataSource hmsDataDataSource = opHmsDataDataSource.get();
+        for(Map.Entry<String, String> keyvalue : hmsDataDataSource.getPaths().entrySet()){
+            String[] fileparts = keyvalue.getValue().split("/");
+            //download the file locally.
+            String outdest = modelOutputDestination + "data/" + fileparts[fileparts.length-1];
+            InputStream is = action.getInputStream(hmsDataSource,keyvalue.getKey());
+            FileOutputStream fs = new FileOutputStream(outdest,false);
+            is.transferTo(fs);//igorance is bliss
+            fs.close();
+        }
         //get the grid file
         byte[] gfdata = action.get("hms","grid-file","");
         String gfstringData = new String(gfdata);
         String[] gflines = gfstringData.split("\n");
         GridFileManager gfm = new GridFileManager(gflines);
         //get the met file.
-        byte[] mfdata = action.get("met-file","default","");
+        byte[] mfdata = action.get("hms","met-file","");
         String mfstringData = new String(mfdata);
         String[] mflines = mfstringData.split("\n");
         MetFileManager mfm = new MetFileManager(mflines);
         //update grid file based on storm name.
         gflines = gfm.write(opStormName.get(), opStormName.get());//assumes the temp grid and precip grid have the same name - not a safe assumption.
-        // TODO write the updated gflines to disk. 
+        //write the updated gflines to disk.
+        linesToDisk(gflines, modelOutputDestination + basinName + ".basin");
         //get the basinfile prefix
         Optional<DataSource> opBasinFiles = action.getInputDataSource("basinfiles");
         if(!opBasinFiles.isPresent()){
@@ -112,7 +153,8 @@ public class ComputeSimulationAllPlacementsAction {
         for(Event e : events){
             //update met file
             mflines = mfm.write(e.X,e.Y);
-            // TODO write lines to disk.
+            //write lines to disk.
+            linesToDisk(mflines, modelOutputDestination + metName + ".met");
             //write metfile locally
             String basinPostfix = e.BasinPath;
             //update control file. - do we plan on having control files with the basin files?
@@ -122,13 +164,13 @@ public class ComputeSimulationAllPlacementsAction {
             String controlPostfix = base + ".control";
             controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
             InputStream cis = action.getInputStream(controlFiles, "default");
-            FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlPostfix,false);
+            FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName + ".control",false);
             cis.transferTo(cfs);//igorance is bliss
             cfs.close();
             //get the basin file for this storm. 
             basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix);
             InputStream is = action.getInputStream(basinFiles, "default");
-            FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinPostfix,false);//check this may need to drop in a slightly different place.
+            FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName + ".basin",false);//check this may need to drop in a slightly different place.
             is.transferTo(fs);//igorance is bliss
             fs.close();
 
@@ -141,11 +183,31 @@ public class ComputeSimulationAllPlacementsAction {
             project.computeRun(simulationName.get());
             
             //export excess precip
+            ComputeSpecification spec = project.getComputeSpecification(simulationName.get());//move to export precip action eventually
+    
+            Set<SpatialVariableType> variables = new HashSet<>();
+            variables.add(SpatialVariableType.INC_EXCESS);//why not allow for this to be parameterized too?
+            spec.exportSpatialResults(modelOutputDestination + exportedPrecipName.get(), variables);
             //close hms
             project.close();
+            //write exported excess precip to the cloud.
+            action.copyFileToRemote("excess-precip", "default", modelOutputDestination + exportedPrecipName.get());
+
             //post peak results to tiledb
-            //post excess precip
+            
             //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
+            action.copyFileToRemote("simulation-dss", "default", modelOutputDestination + simulationName.get() + ".dss");// TODO check this naming 
         }//next event
+        Hms.shutdownEngine();
+    }
+    private void linesToDisk(String[] lines, String path) throws IOException{
+        StringBuilder sb = new StringBuilder();
+        for(String line : lines){
+            sb.append(line + "\n");
+        }
+        FileOutputStream fs = new FileOutputStream(path,false);
+        fs.write(sb.toString().getBytes());
+        fs.close();
+        return;
     }
 }

@@ -22,10 +22,6 @@ public class HmsRunner  {
         Payload mp = pm.getPayload();
         //get Alternative name
         Optional<String> modelName = mp.getAttributes().get("model-name");
-        //get simulation name?
-        Optional<String> simulationName =  mp.getAttributes().get("simulation");
-        //get variant if it exists
-        Optional<String> variantName = mp.getAttributes().get("variant");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
         String modelOutputDestination = "/model/"+modelName.get()+"/";
@@ -39,7 +35,7 @@ public class HmsRunner  {
             pm.logMessage(new Message(a.getDescription()));
             switch(a.getType()){
                 case "compute_forecast":
-                    ComputeForecastAction cfa = new ComputeForecastAction(a, simulationName.get(), variantName.get());
+                    ComputeForecastAction cfa = new ComputeForecastAction(a);
                     cfa.computeAction();
                     break;
                 case "compute_simulation":
@@ -79,25 +75,11 @@ public class HmsRunner  {
             }
         }
         //push results to s3.
+        ioManagerToRemote(mp, modelOutputDestination);
 
-        for (DataSource output : mp.getOutputs()) { 
-            Path path = Paths.get(modelOutputDestination + output.getName());
-            //byte[] data;
-            try {
-                //data = Files.readAllBytes(path);//convert to filestream
-                //InputStream fs = Files.newInputStream(path);
-                mp.copyFileToRemote(output.getName(), "default", path.toString());
-                //pm.fileWriter(fs, output, 0);
-                //pm.putFile(data, output,0);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-                return;
-            } 
-        }
         Hms.shutdownEngine();
     }
-    private static void ioManagerToLocal(IOManager iomanager, String modelOutputDestination) {
+    public static void ioManagerToLocal(IOManager iomanager, String modelOutputDestination) {
         for(DataSource i : iomanager.getInputs()){
             try {
                 File f = new File(modelOutputDestination,i.getName());
@@ -109,6 +91,18 @@ public class HmsRunner  {
             }
         }
         return;
+    }
+    public static void ioManagerToRemote(IOManager ioManager, String modelOutputDestination){
+        for (DataSource output : ioManager.getOutputs()) { 
+            Path path = Paths.get(modelOutputDestination + output.getName());
+            try {
+                ioManager.copyFileToRemote(output.getName(), "default", path.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+                return;
+            } 
+        }
     }
     private static boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();

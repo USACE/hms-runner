@@ -3,8 +3,10 @@ package usace.cc.plugin.hmsrunner;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Optional;
 
+import hms.model.Project;
 import usace.cc.plugin.DataSource;
 import usace.cc.plugin.Action;
 
@@ -27,12 +29,18 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action input datasource named storm-catalog");
             return;
         }
-        //get the storm dss file
+        
         Optional<String> modelName = action.getAttributes().get("model-name");
         if(!modelName.isPresent()){
             System.out.println("could not find action attribute named model-name");
             return;
         }
+        Optional<String> simulationName =  action.getAttributes().get("simulation");
+        if(!simulationName.isPresent()){
+            System.out.println("could not find action attribute named simulation");
+            return;
+        }
+        //get the storm dss file
         String modelOutputDestination = "/model/"+modelName.get()+"/";
         DataSource stormCatalog = opStormCatalog.get();
         stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
@@ -50,8 +58,31 @@ public class ComputeSimulationAllPlacementsAction {
         //filter storms table based on storm name
         Event[] events = table.getEventsByName(opStormName.get());
         //get the hms project files.
+        //how do i plan on figuring out the hms project files? one datasource with many paths
+        Optional<DataSource> opHmsDataSource = action.getInputDataSource("hms");
+        if(!opHmsDataSource.isPresent()){
+            System.out.println("could not find action input datasource named hms");
+        }
+        //placeholder for hms project file.
+        String hmsProjectFile = modelOutputDestination;
+        DataSource hmsDataSource = opHmsDataSource.get();
+        for(Map.Entry<String, String> keyvalue : hmsDataSource.getPaths().entrySet()){
+            if(!keyvalue.getKey().contains("grid-file")&!keyvalue.getKey().contains("met-file")){//skip grid and met
+                String[] fileparts = keyvalue.getValue().split("/");
+                if(keyvalue.getKey().contains("hms-project-file")){
+                    //keep track of this modified path
+                    hmsProjectFile += fileparts[fileparts.length-1];
+                }
+                //download the file locally.
+                String outdest = modelOutputDestination + fileparts[fileparts.length-1];
+                InputStream is = action.getInputStream(hmsDataSource,keyvalue.getKey());
+                FileOutputStream fs = new FileOutputStream(outdest,false);
+                is.transferTo(fs);//igorance is bliss
+                fs.close();
+            }
+        }
         //get the grid file
-        byte[] gfdata = action.get("grid-file","default","");
+        byte[] gfdata = action.get("hms","grid-file","");
         String gfstringData = new String(gfdata);
         String[] gflines = gfstringData.split("\n");
         GridFileManager gfm = new GridFileManager(gflines);
@@ -83,17 +114,18 @@ public class ComputeSimulationAllPlacementsAction {
             mflines = mfm.write(e.X,e.Y);
             // TODO write lines to disk.
             //write metfile locally
+            String basinPostfix = e.BasinPath;
             //update control file. - do we plan on having control files with the basin files?
-            String edate = e.StormDate;
-            String edashdate = edate.substring(0,4)+ "-" + edate.substring(4, 6) + "-" + edate.substring(6, 9);
-            String controlPostfix = edashdate + ".control";//check this - may need more pathing.
+            String[] basinparts = basinPostfix.split("/");
+            String basinfilename = basinparts[basinparts.length-1];//should get me the last part.
+            String base = basinfilename.split("_")[0];//should be all but the last part.
+            String controlPostfix = base + ".control";
             controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
             InputStream cis = action.getInputStream(controlFiles, "default");
             FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlPostfix,false);
             cis.transferTo(cfs);//igorance is bliss
             cfs.close();
             //get the basin file for this storm. 
-            String basinPostfix = e.BasinPath;
             basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix);
             InputStream is = action.getInputStream(basinFiles, "default");
             FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinPostfix,false);//check this may need to drop in a slightly different place.
@@ -101,9 +133,16 @@ public class ComputeSimulationAllPlacementsAction {
             fs.close();
 
             //open hms project.
+            System.out.println("opening project " + hmsProjectFile);
+            Project project = Project.open(hmsProjectFile);
+            
             //compute
+            System.out.println("preparing to run Simulation " + simulationName.get());
+            project.computeRun(simulationName.get());
+            
             //export excess precip
             //close hms
+            project.close();
             //post peak results to tiledb
             //post excess precip
             //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb

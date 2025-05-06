@@ -3,6 +3,7 @@ package usace.cc.plugin.hmsrunner;
 import usace.cc.plugin.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -41,6 +42,18 @@ public class HmsRunner  {
                 case "compute_simulation":
                     ComputeSimulationAction csa = new ComputeSimulationAction(a);
                     csa.computeAction();
+                    break;
+                case "compute_simulation_all_placements_given_storm":
+                    ComputeSimulationAllPlacementsAction csapa = new ComputeSimulationAllPlacementsAction(a);
+                    try {
+                        csapa.computeAction();
+                    } catch (IOException e) {
+                        System.out.println("io exception computing all placements");
+                        System.exit(-1);
+                    } catch (Exception e) {
+                        System.out.println("generic exception computing all placements");
+                        System.exit(-1);
+                    }
                     break;
                 case "dss_to_hdf": 
                     DssToHdfAction da = new DssToHdfAction(a);

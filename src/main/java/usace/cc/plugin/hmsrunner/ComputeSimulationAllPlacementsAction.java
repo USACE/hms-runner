@@ -1,5 +1,7 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,9 @@ import hms.model.Project;
 import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
 import usace.cc.plugin.DataSource;
+import usace.cc.plugin.DataStore;
+import usace.cc.plugin.FileDataStoreS3;
+import usace.cc.plugin.IOManager;
 import usace.cc.plugin.Action;
 
 public class ComputeSimulationAllPlacementsAction {
@@ -24,7 +29,7 @@ public class ComputeSimulationAllPlacementsAction {
     public ComputeSimulationAllPlacementsAction(Action action){
         this.action = action;
     }
-    public void compute() throws Exception, IOException{
+    public void computeAction() throws Exception, IOException{
         //get the storm name
         Optional<String> opStormName = action.getAttributes().get("storm-name");
         if(!opStormName.isPresent()){
@@ -68,12 +73,25 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action attribute named exported-precip-name");
             return;
         }
-        //get the storm dss file
+        Optional<String[]> opPathNames = action.getAttributes().get("exported-peak-paths");
+        if(!opPathNames.isPresent()){
+            System.out.println("could not find action attribute named exported-peak-paths");
+            return;
+        }
+        String[] pathNames = opPathNames.get();
+        Optional<int[]> opDurations = action.getAttributes().get("exported-peak-durations");
+        if(!opDurations.isPresent()){
+            System.out.println("could not find action attribute named exported-peak-durations");
+            return;
+        }
+        int[] durations = opDurations.get();
+        //get the storm dss file //assumes precip and temp in the same location.
         String modelOutputDestination = "/model/"+modelName.get()+"/";
         DataSource stormCatalog = opStormCatalog.get();
         stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
         action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + opStormName.get() + ".dss");
-        //get the storms table.
+        
+        //get the storms table. // TODO update logic to pull from tiledb
         Optional<DataSource> opStormsTable = action.getInputDataSource("storms");
         if(!opStormsTable.isPresent()){
             System.out.println("could not find action input datasource named storms");
@@ -137,7 +155,7 @@ public class ComputeSimulationAllPlacementsAction {
         //update grid file based on storm name.
         gflines = gfm.write(opStormName.get(), opStormName.get());//assumes the temp grid and precip grid have the same name - not a safe assumption.
         //write the updated gflines to disk.
-        linesToDisk(gflines, modelOutputDestination + basinName + ".basin");
+        linesToDisk(gflines, modelOutputDestination + simulationName.get() + ".grid");
         //get the basinfile prefix
         Optional<DataSource> opBasinFiles = action.getInputDataSource("basinfiles");
         if(!opBasinFiles.isPresent()){
@@ -152,6 +170,18 @@ public class ComputeSimulationAllPlacementsAction {
             return;
         }
         DataSource controlFiles = opControlFiles.get();
+        Optional<DataSource> opExcessPrecipOutput = action.getOutputDataSource("excess-precip");
+        if(!opExcessPrecipOutput.isPresent()){
+            System.out.println("could not find action output datasource excess-precip");
+            return;
+        }
+        DataSource excessPrecipOutput = opExcessPrecipOutput.get();
+        Optional<DataSource> opSimulationDss = action.getOutputDataSource("simulation-dss");
+        if(!opSimulationDss.isPresent()){
+            System.out.println("could not find action output datasource simulation-dss");
+            return;
+        }
+        DataSource simulationDss = opSimulationDss.get();
         //loop over filtered events
         for(Event e : events){
             //update met file
@@ -193,17 +223,21 @@ public class ComputeSimulationAllPlacementsAction {
             //close hms
             project.close();
             //write exported excess precip to the cloud.
-            action.copyFileToRemote("excess-precip", "default", modelOutputDestination + exportedPrecipName.get());
-
+            
+            copyFileToRemote(action, excessPrecipOutput, e.EventNumber, modelOutputDestination + exportedPrecipName.get());
+            
             //post peak results to tiledb
             //should i have a list of durations? should i have a list of dss pathnames?
-            double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", new int[]{1,24,48,72}, new String[]{"abcdef"});
-            
+            double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", durations, pathNames);//need to provide event number in the path
+            // TODO write peaks to tiledb or an in memory object to flush at the end of the compute of all locations.
+            System.out.println(durationPeaks);//ta-da.
             //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
-            action.copyFileToRemote("simulation-dss", "default", modelOutputDestination + simulationName.get() + ".dss");
+            copyFileToRemote(action, simulationDss, e.EventNumber, modelOutputDestination + simulationName.get() + ".dss");//need to provide event number in the path
         }//next event
         Hms.shutdownEngine();
+        return;
     }
+
     private void linesToDisk(String[] lines, String path) throws IOException{
         StringBuilder sb = new StringBuilder();
         for(String line : lines){
@@ -214,6 +248,7 @@ public class ComputeSimulationAllPlacementsAction {
         fs.close();
         return;
     }
+
     private double[][] extractPeaksFromDSS(String path, int[] timesteps, String[] datapaths){
         HecTimeSeries reader = new HecTimeSeries();
         int status = reader.setDSSFileName(path);
@@ -268,5 +303,33 @@ public class ComputeSimulationAllPlacementsAction {
             datapathindex ++;
         }   
         return result;
+    }
+    private void copyFileToRemote(IOManager iomanager, DataSource ds, int eventNumber, String localPath){
+        InputStream is;
+        try {
+            is = new FileInputStream(localPath);
+        } catch (FileNotFoundException e) {
+            System.out.println("could not read from path " + localPath);
+            System.exit(-1);
+            return;
+        }
+        Optional<DataStore> opStore = iomanager.getStore(ds.getStoreName());
+        
+        if(!opStore.isPresent()){
+            System.out.println("could not find store named " + ds.getStoreName());
+            System.exit(-1);
+            return;
+        }
+        DataStore store = opStore.get();
+        FileDataStoreS3 s3store = (FileDataStoreS3)store.getSession();
+        if(s3store == null){
+            System.out.println("could not cast store named " + ds.getStoreName() + " to FileDataStoreS3");
+            System.exit(-1);
+            return;
+        }
+        
+        //modify default
+        String path = ds.getPaths().get("default").replace("eventnumber", Integer.toString(eventNumber));
+        s3store.put(is, path);
     }
 }

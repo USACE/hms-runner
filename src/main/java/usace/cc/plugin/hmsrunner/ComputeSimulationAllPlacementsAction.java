@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import hec.heclib.dss.DSSErrorMessage;
+import hec.heclib.dss.HecTimeSeries;
+import hec.io.TimeSeriesContainer;
 import hms.Hms;
 import hms.model.Project;
 import hms.model.data.SpatialVariableType;
@@ -183,8 +186,7 @@ public class ComputeSimulationAllPlacementsAction {
             project.computeRun(simulationName.get());
             
             //export excess precip
-            ComputeSpecification spec = project.getComputeSpecification(simulationName.get());//move to export precip action eventually
-    
+            ComputeSpecification spec = project.getComputeSpecification(simulationName.get());
             Set<SpatialVariableType> variables = new HashSet<>();
             variables.add(SpatialVariableType.INC_EXCESS);//why not allow for this to be parameterized too?
             spec.exportSpatialResults(modelOutputDestination + exportedPrecipName.get(), variables);
@@ -194,9 +196,11 @@ public class ComputeSimulationAllPlacementsAction {
             action.copyFileToRemote("excess-precip", "default", modelOutputDestination + exportedPrecipName.get());
 
             //post peak results to tiledb
+            //should i have a list of durations? should i have a list of dss pathnames?
+            double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", new int[]{1,24,48,72}, new String[]{"abcdef"});
             
             //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
-            action.copyFileToRemote("simulation-dss", "default", modelOutputDestination + simulationName.get() + ".dss");// TODO check this naming 
+            action.copyFileToRemote("simulation-dss", "default", modelOutputDestination + simulationName.get() + ".dss");
         }//next event
         Hms.shutdownEngine();
     }
@@ -209,5 +213,60 @@ public class ComputeSimulationAllPlacementsAction {
         fs.write(sb.toString().getBytes());
         fs.close();
         return;
+    }
+    private double[][] extractPeaksFromDSS(String path, int[] timesteps, String[] datapaths){
+        HecTimeSeries reader = new HecTimeSeries();
+        int status = reader.setDSSFileName(path);
+        double[][] result = new double[timesteps.length][];
+        if (status <0){
+            //panic?
+            DSSErrorMessage error = reader.getLastError();
+            error.printMessage();
+            return result;
+        }
+
+        for (int timestep = 0; timestep < timesteps.length; timestep++){
+            result[timestep] = new double[datapaths.length];
+        }
+        int datapathindex = 0;
+        for(String datapath : datapaths){
+            //get the data.
+            TimeSeriesContainer tsc = new TimeSeriesContainer();
+            tsc.fullName = datapath;
+            status = reader.read(tsc,true);
+            if (status <0){
+                //panic?
+                DSSErrorMessage error = reader.getLastError();
+                error.printMessage();
+                return result;
+            }
+            int durationIndex = 0;
+            double[] data = tsc.values;
+            for (int duration : timesteps){
+                //find duration peak.
+                double maxval = 0.0;
+                double runningVal = 0.0;
+                for (int timestep = 0; timestep < data.length; timestep++)
+                {
+                    runningVal += data[timestep];
+                    if (timestep < duration)
+                    {
+                        maxval = runningVal;
+                    }
+                    else
+                    {
+                        runningVal -= data[timestep - duration];
+                        if (runningVal > maxval)
+                        {
+                            maxval = runningVal;
+                        }
+                    }
+                }
+                result[durationIndex][datapathindex] = maxval/(double)duration;
+                durationIndex ++;
+            }
+            datapathindex ++;
+        }   
+        return result;
     }
 }

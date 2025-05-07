@@ -273,6 +273,7 @@ public class ComputeSimulationAllPlacementsAction {
                 //panic?
                 DSSErrorMessage error = reader.getLastError();
                 error.printMessage();
+                reader.closeAndClear();
                 return result;
             }
             int durationIndex = 0;

@@ -301,7 +301,8 @@ public class ComputeSimulationAllPlacementsAction {
                 durationIndex ++;
             }
             datapathindex ++;
-        }   
+        }  
+        reader.closeAndClear(); //why so many close options? seems like close should do what it needs to do.
         return result;
     }
     private void copyFileToRemote(IOManager iomanager, DataSource ds, int eventNumber, String localPath){

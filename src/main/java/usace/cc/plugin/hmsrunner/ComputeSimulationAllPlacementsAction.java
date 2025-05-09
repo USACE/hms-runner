@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -17,11 +18,11 @@ import hms.Hms;
 import hms.model.Project;
 import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
-import usace.cc.plugin.DataSource;
-import usace.cc.plugin.DataStore;
-import usace.cc.plugin.FileDataStoreS3;
-import usace.cc.plugin.IOManager;
-import usace.cc.plugin.Action;
+import usace.cc.plugin.api.DataSource;
+import usace.cc.plugin.api.DataStore;
+import usace.cc.plugin.api.cloud.aws.FileStoreS3;
+import usace.cc.plugin.api.IOManager;
+import usace.cc.plugin.api.Action;
 
 public class ComputeSimulationAllPlacementsAction {
     //compute all placement/basin file locations per storm name
@@ -38,7 +39,7 @@ public class ComputeSimulationAllPlacementsAction {
         }
         //get the base directory for the storm catalog
         Optional<DataSource> opStormCatalog = action.getInputDataSource("storm-catalog");//should be relative to the S3Datastore instance
-        if(!opStormName.isPresent()){
+        if(!opStormCatalog.isPresent()){
             System.out.println("could not find action input datasource named storm-catalog");
             return;
         }
@@ -73,22 +74,22 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action attribute named exported-precip-name");
             return;
         }
-        Optional<String[]> opPathNames = action.getAttributes().get("exported-peak-paths");
+        Optional<ArrayList<String>> opPathNames = action.getAttributes().get("exported-peak-paths");
         if(!opPathNames.isPresent()){
             System.out.println("could not find action attribute named exported-peak-paths");
             return;
         }
-        String[] pathNames = opPathNames.get();
-        Optional<int[]> opDurations = action.getAttributes().get("exported-peak-durations");
+        ArrayList<String> pathNames = opPathNames.get();
+        Optional<ArrayList<Integer>> opDurations = action.getAttributes().get("exported-peak-durations");
         if(!opDurations.isPresent()){
             System.out.println("could not find action attribute named exported-peak-durations");
             return;
         }
-        int[] durations = opDurations.get();
+        ArrayList<Integer> durations = opDurations.get();
         //get the storm dss file //assumes precip and temp in the same location.
         String modelOutputDestination = "/model/"+modelName.get()+"/";
         DataSource stormCatalog = opStormCatalog.get();
-        stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
+        stormCatalog.getPaths().get().put("default", stormCatalog.getPaths().get().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
         action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + opStormName.get() + ".dss");
         
         //get the storms table. // TODO update logic to pull from tiledb
@@ -112,7 +113,7 @@ public class ComputeSimulationAllPlacementsAction {
         //placeholder for hms project file.
         String hmsProjectFile = modelOutputDestination;
         DataSource hmsDataSource = opHmsDataSource.get();
-        for(Map.Entry<String, String> keyvalue : hmsDataSource.getPaths().entrySet()){
+        for(Map.Entry<String, String> keyvalue : hmsDataSource.getPaths().get().entrySet()){
             if(!keyvalue.getKey().contains("grid-file")&!keyvalue.getKey().contains("met-file")){//skip grid and met
                 String[] fileparts = keyvalue.getValue().split("/");
                 if(keyvalue.getKey().contains("hms-project-file")){
@@ -133,7 +134,7 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action input datasource named hms-data");
         }
         DataSource hmsDataDataSource = opHmsDataDataSource.get();
-        for(Map.Entry<String, String> keyvalue : hmsDataDataSource.getPaths().entrySet()){
+        for(Map.Entry<String, String> keyvalue : hmsDataDataSource.getPaths().get().entrySet()){
             String[] fileparts = keyvalue.getValue().split("/");
             //download the file locally.
             String outdest = modelOutputDestination + "data/" + fileparts[fileparts.length-1];
@@ -195,13 +196,13 @@ public class ComputeSimulationAllPlacementsAction {
             String basinfilename = basinparts[basinparts.length-1];//should get me the last part.
             String base = basinfilename.split("_")[0];//should be all but the last part.
             String controlPostfix = base + ".control";
-            controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
+            controlFiles.getPaths().get().put("default",controlFiles.getPaths().get().get("control-prefix") + "/" + controlPostfix);
             InputStream cis = action.getInputStream(controlFiles, "default");
             FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName + ".control",false);
             cis.transferTo(cfs);//igorance is bliss
             cfs.close();
             //get the basin file for this storm. 
-            basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix);
+            basinFiles.getPaths().get().put("default",basinFiles.getPaths().get().get("basin-prefix") + "/" + basinPostfix);
             InputStream is = action.getInputStream(basinFiles, "default");
             FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName + ".basin",false);//check this may need to drop in a slightly different place.
             is.transferTo(fs);//igorance is bliss
@@ -249,10 +250,10 @@ public class ComputeSimulationAllPlacementsAction {
         return;
     }
 
-    private double[][] extractPeaksFromDSS(String path, int[] timesteps, String[] datapaths){
+    private double[][] extractPeaksFromDSS(String path, ArrayList<Integer> timesteps, ArrayList<String> datapaths){
         HecTimeSeries reader = new HecTimeSeries();
         int status = reader.setDSSFileName(path);
-        double[][] result = new double[timesteps.length][];
+        double[][] result = new double[timesteps.size()][];
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -260,8 +261,8 @@ public class ComputeSimulationAllPlacementsAction {
             return result;
         }
 
-        for (int timestep = 0; timestep < timesteps.length; timestep++){
-            result[timestep] = new double[datapaths.length];
+        for (int timestep = 0; timestep < timesteps.size(); timestep++){
+            result[timestep] = new double[datapaths.size()];
         }
         int datapathindex = 0;
         for(String datapath : datapaths){
@@ -323,7 +324,7 @@ public class ComputeSimulationAllPlacementsAction {
             return;
         }
         DataStore store = opStore.get();
-        FileDataStoreS3 s3store = (FileDataStoreS3)store.getSession();
+        FileStoreS3 s3store = (FileStoreS3)store.getSession();
         if(s3store == null){
             System.out.println("could not cast store named " + ds.getStoreName() + " to FileDataStoreS3");
             System.exit(-1);
@@ -331,7 +332,7 @@ public class ComputeSimulationAllPlacementsAction {
         }
         
         //modify default
-        String path = ds.getPaths().get("default").replace("eventnumber", Integer.toString(eventNumber));
+        String path = ds.getPaths().get().get("default").replace("eventnumber", Integer.toString(eventNumber));
         s3store.put(is, path);
     }
 }

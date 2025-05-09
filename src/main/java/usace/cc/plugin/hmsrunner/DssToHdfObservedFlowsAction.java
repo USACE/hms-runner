@@ -7,8 +7,8 @@ import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class DssToHdfObservedFlowsAction {
     private Action action;
@@ -26,7 +26,7 @@ public class DssToHdfObservedFlowsAction {
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -40,7 +40,7 @@ public class DssToHdfObservedFlowsAction {
         }
         DataSource destination = opDestination.get();
         //create hdf writer
-        H5Connection writer = new H5Connection(destination.getPaths().get("default"));//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths().get().get("default"));//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class DssToHdfObservedFlowsAction {
             return;
         }
         //read time series from source
-        for(Map.Entry<String,String> es : source.getDataPaths().entrySet()){//assumes datapaths for source and dest are ordered the same.
+        for(Map.Entry<String,String> es : source.getDataPaths().get().entrySet()){//assumes datapaths for source and dest are ordered the same.
             TimeSeriesContainer tsc = new TimeSeriesContainer();
             tsc.fullName = es.getValue();
 
@@ -62,7 +62,7 @@ public class DssToHdfObservedFlowsAction {
             double[] values = tsc.values;
             //write time series to destination
             try {
-                writer.writeResSimReleases(values,destination.getDataPaths().get(es.getKey()));
+                writer.writeResSimReleases(values,destination.getDataPaths().get().get(es.getKey()));
             } catch (Exception e) {
                 e.printStackTrace();
                 return;

@@ -7,8 +7,8 @@ import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class DssToHdfAction {
     private Action action;
@@ -26,7 +26,7 @@ public class DssToHdfAction {
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -41,7 +41,7 @@ public class DssToHdfAction {
         }
         DataSource destination = opDestination.get();
         //create hdf writer
-        H5Connection writer = new H5Connection(destination.getPaths().get("default"));//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths().get().get("default"));//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {
@@ -49,7 +49,7 @@ public class DssToHdfAction {
             return;
         }
         //read time series from source
-        for(Map.Entry<String,String> es : source.getDataPaths().entrySet()){//assumes datapaths for source and dest are ordered the same.
+        for(Map.Entry<String,String> es : source.getDataPaths().get().entrySet()){//assumes datapaths for source and dest are ordered the same.
             Optional<Double> hasMultiplier = action.getAttributes().get(es.getValue() + "- multiplier");
             Double multiplier = 1.0d;
             if (hasMultiplier.isPresent()){
@@ -78,7 +78,7 @@ public class DssToHdfAction {
             }
             //write time series to destination
             try {
-                writer.write(values,times,destination.getDataPaths().get(es.getKey()));
+                writer.write(values,times,destination.getDataPaths().get().get(es.getKey()));
             } catch (Exception e) {
                 //e.printStackTrace();
                 return;

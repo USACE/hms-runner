@@ -5,8 +5,8 @@ import java.util.Optional;
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class DssToCsvAction {
     private Action action;
@@ -24,7 +24,7 @@ public class DssToCsvAction {
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -39,7 +39,7 @@ public class DssToCsvAction {
         }
         //DataSource destination = opDestination.get();
         //read time series from source
-        for(Map.Entry<String,String> es : source.getDataPaths().entrySet()){//assumes datapaths for source and dest are ordered the same.
+        for(Map.Entry<String,String> es : source.getDataPaths().get().entrySet()){//assumes datapaths for source and dest are ordered the same.
             Optional<Double> hasMultiplier = action.getAttributes().get(es.getValue() + "- multiplier");
             Double multiplier = 1.0d;
             if (hasMultiplier.isPresent()){

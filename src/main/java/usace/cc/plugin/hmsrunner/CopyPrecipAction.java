@@ -2,8 +2,8 @@ package usace.cc.plugin.hmsrunner;
 
 import java.util.Optional;
 
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class CopyPrecipAction {
     private Action action;
@@ -18,9 +18,9 @@ public class CopyPrecipAction {
             return;
         }
         DataSource source = opSource.get();
-        String sourceDataPath = source.getDataPaths().get("default");
+        String sourceDataPath = source.getDataPaths().get().get("default");
         //create hdf connection
-        H5Connection connection = new H5Connection(source.getPaths().get("default"));//assumes one path and assumes it is hdf.
+        H5Connection connection = new H5Connection(source.getPaths().get().get("default"));//assumes one path and assumes it is hdf.
         try {
             connection.open();
         } catch (Exception e) {
@@ -33,8 +33,8 @@ public class CopyPrecipAction {
             System.out.println("could not find output datasource destination");
         }
         DataSource destination = opDestination.get();
-        String destDataPath = destination.getDataPaths().get("default");//output destination hdf table name 
-        for(String destFilePath : destination.getPaths().values()){//assumes datapaths are all hdf files.
+        String destDataPath = destination.getDataPaths().get().get("default");//output destination hdf table name 
+        for(String destFilePath : destination.getPaths().get().values()){//assumes datapaths are all hdf files.
             //copy from source to destination
             try {
                 connection.copyTo(sourceDataPath, destDataPath,destFilePath);

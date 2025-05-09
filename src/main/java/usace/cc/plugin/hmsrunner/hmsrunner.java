@@ -1,6 +1,7 @@
 package usace.cc.plugin.hmsrunner;
 
-import usace.cc.plugin.*;
+import usace.cc.plugin.api.*;
+import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +19,15 @@ public class HmsRunner  {
     public static void main(String[] args) {
         System.out.println(PLUGINNAME + " says hello.");
         //check the args are greater than 1
-        PluginManager pm = PluginManager.getInstance();
+        PluginManager pm;
+        try {
+            pm = PluginManager.getInstance();
+        } catch (InvalidDataStoreException e) {
+            e.printStackTrace();
+            System.out.println("could not find one of the datastores in payload to register.");
+            System.exit(-1);
+            return;
+        }
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name

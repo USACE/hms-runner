@@ -3,7 +3,7 @@ package usace.cc.plugin.hmsrunner;
 import java.util.Optional;
 
 import hms.model.Project;
-import usace.cc.plugin.Action;
+import usace.cc.plugin.api.Action;
 
 public class ComputeForecastAction {
     private Action action;

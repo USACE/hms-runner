@@ -277,10 +277,16 @@ public class ComputeSimulationAllPlacementsAction {
             //get the basin file for this storm. 
             basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix + ".basin");
             try {
-                InputStream is = action.getInputStream(basinFiles, "default");
-                FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName.get() + ".basin",false);//check this may need to drop in a slightly different place.
-                is.transferTo(fs);//igorance is bliss
-                fs.close();
+                //temporary change due to improper name in the control file @TODO fix this in greg's script that preps controlfiles
+                byte[] bdata = action.get(basinFiles.getName(), "default", "");
+                String bdatastring = new String(bdata);
+                String[] blines = bdatastring.split("\n");
+                blines[0] = "Basin: " + basinName.get();
+                linesToDisk(blines, modelOutputDestination + basinName.get() + ".basin");
+                //InputStream is = action.getInputStream(basinFiles, "default");
+                //FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName.get() + ".basin",false);//check this may need to drop in a slightly different place.
+                //is.transferTo(fs);//igorance is bliss
+                //fs.close();
             } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();

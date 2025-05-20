@@ -97,7 +97,7 @@ public String[] write(Double x, Double y, String stormName) {
     ArrayList<String> lines = new ArrayList<String>();
     for(Block b : EverythingElse){
         for(String l : b.Lines){
-            lines.add(l+ "\n");
+            lines.add(l);
         }
     }
     for(Block b : PrecipGrids){
@@ -110,26 +110,26 @@ public String[] write(Double x, Double y, String stormName) {
                 //fix the line to contain the new coordinate.
                 String[] parts = l.split(" ");
                 parts[parts.length-1] = x.toString();
-                String newl = "";
+                String newl = "     ";
                 for(String part : parts){
                     newl += part;
                 }
-                lines.add(newl+ "\n");
+                lines.add(newl);
                 continue;
             }
             if (l.contains("Storm Center Y-coordinate:")){
                 //fix the line to contain the new coordinate.
                 String[] parts = l.split(" ");
                 parts[parts.length-1] = y.toString();
-                String newl = "";
+                String newl = "     ";
                 for(String part : parts){
                     newl += part;
                 }
-                lines.add(newl+ "\n");
+                lines.add(newl);
                 continue;
             }
 
-                lines.add(l + "\n");
+                lines.add(l);
         }
     }
     for(Block b : TemperatureGrids){

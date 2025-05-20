@@ -64,7 +64,7 @@ public String[] write(String precipGridName, String tempGridName) {
     ArrayList<String> lines = new ArrayList<String>();
     for(Block b : EverythingElse){
         for(String l : b.Lines){
-            lines.add(l + "\n");
+            lines.add(l);
         }
     }
     for(Block b : PrecipGrids){
@@ -79,7 +79,7 @@ public String[] write(String precipGridName, String tempGridName) {
         }
         if(isRightGrid){
             for(String l : b.Lines){
-                lines.add(l + "\n");
+                lines.add(l);
             }
         }
     }
@@ -95,7 +95,7 @@ public String[] write(String precipGridName, String tempGridName) {
         }
         if(isRightGrid){
             for(String l : b.Lines){
-                lines.add(l + "\n");
+                lines.add(l);
             }
         }
     }
@@ -110,17 +110,17 @@ public String[] writeAll() {
     ArrayList<String> lines = new ArrayList<String>();
     for(Block b : EverythingElse){
         for(String l : b.Lines){
-            lines.add(l + "\n");
+            lines.add(l);
         }
     }
     for(Block b : PrecipGrids){
         for(String l: b.Lines){
-            lines.add(l + "\n");
+            lines.add(l);
         }
     }
     for(Block b : TemperatureGrids){
         for(String l: b.Lines){
-            lines.add(l + "\n");
+            lines.add(l);
         }
     }
     Object[] oblines = lines.toArray();

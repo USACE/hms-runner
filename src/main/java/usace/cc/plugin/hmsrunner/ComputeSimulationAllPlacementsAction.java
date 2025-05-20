@@ -256,12 +256,18 @@ public class ComputeSimulationAllPlacementsAction {
             String base = basinfilename.split("_")[0];//should be all but the last part.
             String controlPostfix = base + ".control";
             controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
-            InputStream cis;
+            //InputStream cis;
             try {
-                cis = action.getInputStream(controlFiles, "default");
-                FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName.get() + ".control",false);
-                cis.transferTo(cfs);//igorance is bliss- @ TODO control file internal name needs to match run file definition.
-                cfs.close();
+                //temporary change due to improper name in the control file @TODO fix this in greg's script that preps controlfiles
+                byte[] cdata = action.get(controlFiles.getName(), "default", "");
+                String datastring = new String(cdata);
+                String[] clines = datastring.split("\n");
+                clines[0] = "Control: " + controlName.get();
+                linesToDisk(clines, modelOutputDestination + controlName.get() + ".control");
+                //cis = action.getInputStream(controlFiles, "default");
+                //FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName.get() + ".control",false);
+                //cis.transferTo(cfs);//igorance is bliss-
+                //cfs.close();
             } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();

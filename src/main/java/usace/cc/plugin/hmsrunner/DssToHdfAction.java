@@ -26,7 +26,7 @@ public class DssToHdfAction {
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths().get().get("default"));//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -41,7 +41,7 @@ public class DssToHdfAction {
         }
         DataSource destination = opDestination.get();
         //create hdf writer
-        H5Connection writer = new H5Connection(destination.getPaths().get().get("default"));//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths().get("default"));//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {

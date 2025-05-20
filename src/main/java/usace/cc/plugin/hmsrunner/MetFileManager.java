@@ -93,7 +93,7 @@ public MetFileManager(String[] lines){
         }
     }
 }
-public String[] write(Double x, Double y) {
+public String[] write(Double x, Double y, String stormName) {
     ArrayList<String> lines = new ArrayList<String>();
     for(Block b : EverythingElse){
         for(String l : b.Lines){
@@ -102,35 +102,46 @@ public String[] write(Double x, Double y) {
     }
     for(Block b : PrecipGrids){
         for(String l: b.Lines){
-                if (l.contains("Storm Center X-coordinate:")){
-                    //fix the line to contain the new coordinate.
-                    String[] parts = l.split(" ");
-                    parts[parts.length-1] = x.toString();
-                    String newl = "";
-                    for(String part : parts){
-                        newl += part;
-                    }
-                    lines.add(newl+ "\n");
-                    continue;
+            if(l.contains("Precip Grid Name:")){
+                lines.add("     Precip Grid Name: " + stormName + "\n");
+                continue;
+            }
+            if (l.contains("Storm Center X-coordinate:")){
+                //fix the line to contain the new coordinate.
+                String[] parts = l.split(" ");
+                parts[parts.length-1] = x.toString();
+                String newl = "";
+                for(String part : parts){
+                    newl += part;
                 }
-                if (l.contains("Storm Center Y-coordinate:")){
-                    //fix the line to contain the new coordinate.
-                    String[] parts = l.split(" ");
-                    parts[parts.length-1] = y.toString();
-                    String newl = "";
-                    for(String part : parts){
-                        newl += part;
-                    }
-                    lines.add(newl+ "\n");
-                    continue;
+                lines.add(newl+ "\n");
+                continue;
+            }
+            if (l.contains("Storm Center Y-coordinate:")){
+                //fix the line to contain the new coordinate.
+                String[] parts = l.split(" ");
+                parts[parts.length-1] = y.toString();
+                String newl = "";
+                for(String part : parts){
+                    newl += part;
                 }
+                lines.add(newl+ "\n");
+                continue;
+            }
 
-                lines.add(l+ "\n");
+                lines.add(l + "\n");
         }
     }
     for(Block b : TemperatureGrids){
         for(String l : b.Lines){
-            lines.add(l+ "\n");
+            String line = l;
+            if(l.contains("Temperature Grid Name:")){
+                line = "     Temperature Grid Name: " + stormName;
+            }
+            if(l.contains("Time Shift Method:")){
+                line = "     Time Shift Method: NORMALIZE";
+            }
+            lines.add(line + "\n");
         }
     }
     Object[] oblines = lines.toArray();

@@ -24,7 +24,7 @@ public class DssToCsvAction {
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths().get().get("default"));//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();

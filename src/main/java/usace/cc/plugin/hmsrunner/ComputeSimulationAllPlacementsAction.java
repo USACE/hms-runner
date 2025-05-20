@@ -20,8 +20,10 @@ import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
 import usace.cc.plugin.api.DataSource;
 import usace.cc.plugin.api.DataStore;
+import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 import usace.cc.plugin.api.IOManager;
+import usace.cc.plugin.api.IOManager.InvalidDataSourceException;
 import usace.cc.plugin.api.Action;
 
 public class ComputeSimulationAllPlacementsAction {
@@ -30,7 +32,7 @@ public class ComputeSimulationAllPlacementsAction {
     public ComputeSimulationAllPlacementsAction(Action action){
         this.action = action;
     }
-    public void computeAction() throws Exception, IOException{
+    public void computeAction(){
         //get the storm name
         Optional<String> opStormName = action.getAttributes().get("storm-name");
         if(!opStormName.isPresent()){
@@ -89,8 +91,13 @@ public class ComputeSimulationAllPlacementsAction {
         //get the storm dss file //assumes precip and temp in the same location.
         String modelOutputDestination = "/model/"+modelName.get()+"/";
         DataSource stormCatalog = opStormCatalog.get();
-        stormCatalog.getPaths().get().put("default", stormCatalog.getPaths().get().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
-        action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + opStormName.get() + ".dss");
+        stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
+        try {
+            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + opStormName.get() + ".dss");
+        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
         //get the storms table. // TODO update logic to pull from tiledb
         Optional<DataSource> opStormsTable = action.getInputDataSource("storms");
@@ -98,7 +105,19 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action input datasource named storms");
             return;
         }
-        byte[] data = action.get(opStormsTable.get().getName(),"default","");
+        byte[] data = new byte[0];
+        try {
+            data = action.get(opStormsTable.get().getName(),"default","");
+        } catch (InvalidDataSourceException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DataStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         String stringData = new String(data);
         String[] lines = stringData.split("\n");
         SSTTable table = new SSTTable(lines);
@@ -113,7 +132,7 @@ public class ComputeSimulationAllPlacementsAction {
         //placeholder for hms project file.
         String hmsProjectFile = modelOutputDestination;
         DataSource hmsDataSource = opHmsDataSource.get();
-        for(Map.Entry<String, String> keyvalue : hmsDataSource.getPaths().get().entrySet()){
+        for(Map.Entry<String, String> keyvalue : hmsDataSource.getPaths().entrySet()){
             if(!keyvalue.getKey().contains("grid-file")&!keyvalue.getKey().contains("met-file")){//skip grid and met
                 String[] fileparts = keyvalue.getValue().split("/");
                 if(keyvalue.getKey().contains("hms-project-file")){
@@ -122,10 +141,19 @@ public class ComputeSimulationAllPlacementsAction {
                 }
                 //download the file locally.
                 String outdest = modelOutputDestination + fileparts[fileparts.length-1];
-                InputStream is = action.getInputStream(hmsDataSource,keyvalue.getKey());
-                FileOutputStream fs = new FileOutputStream(outdest,false);
-                is.transferTo(fs);//igorance is bliss
-                fs.close();
+                InputStream is;
+                try {
+                    System.out.println(keyvalue.getValue());
+                    is = action.getInputStream(hmsDataSource,keyvalue.getKey());
+                    FileOutputStream fs = new FileOutputStream(outdest,false);
+                    is.transferTo(fs);//igorance is bliss
+                    fs.close();
+                } catch (IOException| InvalidDataSourceException | DataStoreException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+
             }
         }
         //one datsource to keep relative pathing structure with /data/
@@ -134,29 +162,55 @@ public class ComputeSimulationAllPlacementsAction {
             System.out.println("could not find action input datasource named hms-data");
         }
         DataSource hmsDataDataSource = opHmsDataDataSource.get();
-        for(Map.Entry<String, String> keyvalue : hmsDataDataSource.getPaths().get().entrySet()){
+        for(Map.Entry<String, String> keyvalue : hmsDataDataSource.getPaths().entrySet()){
             String[] fileparts = keyvalue.getValue().split("/");
             //download the file locally.
             String outdest = modelOutputDestination + "data/" + fileparts[fileparts.length-1];
-            InputStream is = action.getInputStream(hmsDataSource,keyvalue.getKey());
-            FileOutputStream fs = new FileOutputStream(outdest,false);
-            is.transferTo(fs);//igorance is bliss
-            fs.close();
+            System.out.println(outdest);
+            System.out.println(keyvalue.getValue());
+            try{
+                InputStream is = action.getInputStream(hmsDataDataSource,keyvalue.getKey());
+                FileOutputStream fs = new FileOutputStream(outdest,false);
+                is.transferTo(fs);//igorance is bliss
+                fs.close();
+            } catch (IOException| InvalidDataSourceException | DataStoreException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                System.exit(-1);
+            }
         }
         //get the grid file
-        byte[] gfdata = action.get("hms","grid-file","");
+        byte[] gfdata = new byte[0];
+        try {
+            gfdata = action.get("hms","grid-file","");
+        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         String gfstringData = new String(gfdata);
         String[] gflines = gfstringData.split("\n");
         GridFileManager gfm = new GridFileManager(gflines);
         //get the met file.
-        byte[] mfdata = action.get("hms","met-file","");
+        byte[] mfdata = new byte[0];
+        try {
+            mfdata = action.get("hms","met-file","");
+        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         String mfstringData = new String(mfdata);
         String[] mflines = mfstringData.split("\n");
         MetFileManager mfm = new MetFileManager(mflines);
         //update grid file based on storm name.
-        gflines = gfm.write(opStormName.get(), opStormName.get());//assumes the temp grid and precip grid have the same name - not a safe assumption.
+        String stormName = opStormName.get().replace("st", "ST");
+        gflines = gfm.write(stormName,stormName);//assumes the temp grid and precip grid have the same name - not a safe assumption.
         //write the updated gflines to disk.
-        linesToDisk(gflines, modelOutputDestination + simulationName.get() + ".grid");
+        try {
+            linesToDisk(gflines, modelOutputDestination + simulationName.get() + ".grid");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         //get the basinfile prefix
         Optional<DataSource> opBasinFiles = action.getInputDataSource("basinfiles");
         if(!opBasinFiles.isPresent()){
@@ -186,9 +240,14 @@ public class ComputeSimulationAllPlacementsAction {
         //loop over filtered events
         for(Event e : events){
             //update met file
-            mflines = mfm.write(e.X,e.Y);
+            mflines = mfm.write(e.X,e.Y, stormName);
             //write lines to disk.
-            linesToDisk(mflines, modelOutputDestination + metName + ".met");
+            try {
+                linesToDisk(mflines, modelOutputDestination + metName.get() + ".met");
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
             //write metfile locally
             String basinPostfix = e.BasinPath;
             //update control file. - do we plan on having control files with the basin files?
@@ -196,17 +255,31 @@ public class ComputeSimulationAllPlacementsAction {
             String basinfilename = basinparts[basinparts.length-1];//should get me the last part.
             String base = basinfilename.split("_")[0];//should be all but the last part.
             String controlPostfix = base + ".control";
-            controlFiles.getPaths().get().put("default",controlFiles.getPaths().get().get("control-prefix") + "/" + controlPostfix);
-            InputStream cis = action.getInputStream(controlFiles, "default");
-            FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName + ".control",false);
-            cis.transferTo(cfs);//igorance is bliss
-            cfs.close();
+            controlFiles.getPaths().put("default",controlFiles.getPaths().get("control-prefix") + "/" + controlPostfix);
+            InputStream cis;
+            try {
+                cis = action.getInputStream(controlFiles, "default");
+                FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName.get() + ".control",false);
+                cis.transferTo(cfs);//igorance is bliss- @ TODO control file internal name needs to match run file definition.
+                cfs.close();
+            } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+                System.exit(-1);
+            }
+
             //get the basin file for this storm. 
-            basinFiles.getPaths().get().put("default",basinFiles.getPaths().get().get("basin-prefix") + "/" + basinPostfix);
-            InputStream is = action.getInputStream(basinFiles, "default");
-            FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName + ".basin",false);//check this may need to drop in a slightly different place.
-            is.transferTo(fs);//igorance is bliss
-            fs.close();
+            basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix + ".basin");
+            try {
+                InputStream is = action.getInputStream(basinFiles, "default");
+                FileOutputStream fs = new FileOutputStream(modelOutputDestination + basinName.get() + ".basin",false);//check this may need to drop in a slightly different place.
+                is.transferTo(fs);//igorance is bliss
+                fs.close();
+            } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+                System.exit(-1);
+            }
 
             //open hms project.
             System.out.println("opening project " + hmsProjectFile);
@@ -332,7 +405,11 @@ public class ComputeSimulationAllPlacementsAction {
         }
         
         //modify default
-        String path = ds.getPaths().get().get("default").replace("eventnumber", Integer.toString(eventNumber));
-        s3store.put(is, path);
+        String path = ds.getPaths().get("default").replace("eventnumber", Integer.toString(eventNumber));
+        try {
+            s3store.put(is, path);
+        } catch (DataStoreException e) {
+            System.out.println("could not write data to path " + path);
+        }
     }
 }

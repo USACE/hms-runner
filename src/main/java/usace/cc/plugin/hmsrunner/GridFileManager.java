@@ -106,4 +106,28 @@ public String[] write(String precipGridName, String tempGridName) {
     }
     return ablines;
 }
+public String[] writeAll() {
+    ArrayList<String> lines = new ArrayList<String>();
+    for(Block b : EverythingElse){
+        for(String l : b.Lines){
+            lines.add(l + "\n");
+        }
+    }
+    for(Block b : PrecipGrids){
+        for(String l: b.Lines){
+            lines.add(l + "\n");
+        }
+    }
+    for(Block b : TemperatureGrids){
+        for(String l: b.Lines){
+            lines.add(l + "\n");
+        }
+    }
+    Object[] oblines = lines.toArray();
+    String[] ablines = new String[oblines.length];
+    for(int i = 0; i<oblines.length;i++){
+        ablines[i] = (String)oblines[i];
+    }
+    return ablines;
+}
 }

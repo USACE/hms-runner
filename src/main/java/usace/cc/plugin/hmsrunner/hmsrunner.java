@@ -4,7 +4,6 @@ import usace.cc.plugin.api.*;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -56,10 +55,8 @@ public class HmsRunner  {
                     ComputeSimulationAllPlacementsAction csapa = new ComputeSimulationAllPlacementsAction(a);
                     try {
                         csapa.computeAction();
-                    } catch (IOException e) {
-                        System.out.println("io exception computing all placements");
-                        System.exit(-1);
                     } catch (Exception e) {
+                        e.printStackTrace();
                         System.out.println("generic exception computing all placements");
                         System.exit(-1);
                     }

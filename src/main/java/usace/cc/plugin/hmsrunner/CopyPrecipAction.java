@@ -20,7 +20,7 @@ public class CopyPrecipAction {
         DataSource source = opSource.get();
         String sourceDataPath = source.getDataPaths().get().get("default");
         //create hdf connection
-        H5Connection connection = new H5Connection(source.getPaths().get().get("default"));//assumes one path and assumes it is hdf.
+        H5Connection connection = new H5Connection(source.getPaths().get("default"));//assumes one path and assumes it is hdf.
         try {
             connection.open();
         } catch (Exception e) {
@@ -34,7 +34,7 @@ public class CopyPrecipAction {
         }
         DataSource destination = opDestination.get();
         String destDataPath = destination.getDataPaths().get().get("default");//output destination hdf table name 
-        for(String destFilePath : destination.getPaths().get().values()){//assumes datapaths are all hdf files.
+        for(String destFilePath : destination.getPaths().values()){//assumes datapaths are all hdf files.
             //copy from source to destination
             try {
                 connection.copyTo(sourceDataPath, destDataPath,destFilePath);

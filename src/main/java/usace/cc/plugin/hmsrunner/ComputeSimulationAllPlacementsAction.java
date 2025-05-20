@@ -93,7 +93,10 @@ public class ComputeSimulationAllPlacementsAction {
         DataSource stormCatalog = opStormCatalog.get();
         stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
         try {
-            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + opStormName.get() + ".dss");
+            //@ TODO fix this to not have to lowercase the st. 
+            String modifiedStormName = opStormName.get();
+            modifiedStormName = modifiedStormName.replace("st","ST");
+            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + modifiedStormName + ".dss");
         } catch (InvalidDataSourceException | IOException | DataStoreException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -189,6 +192,8 @@ public class ComputeSimulationAllPlacementsAction {
         }
         String gfstringData = new String(gfdata);
         String[] gflines = gfstringData.split("\n");
+        gflines[0] = "Grid Manager: " + modelName.get();//@ TODO this should be prepped correctly on model library, this is just a safety net.
+        gflines[1] = "     Grid Manager: " + modelName.get();
         GridFileManager gfm = new GridFileManager(gflines);
         //get the met file.
         byte[] mfdata = new byte[0];
@@ -206,7 +211,7 @@ public class ComputeSimulationAllPlacementsAction {
         gflines = gfm.write(stormName,stormName);//assumes the temp grid and precip grid have the same name - not a safe assumption.
         //write the updated gflines to disk.
         try {
-            linesToDisk(gflines, modelOutputDestination + simulationName.get() + ".grid");
+            linesToDisk(gflines, modelOutputDestination + modelName.get() + ".grid");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -277,9 +282,10 @@ public class ComputeSimulationAllPlacementsAction {
             //get the basin file for this storm. 
             basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix + ".basin");
             try {
-                //temporary change due to improper name in the control file @TODO fix this in greg's script that preps controlfiles
+                //temporary change due to improper name in the basin file @TODO fix this in greg's script that preps basinfiles
                 byte[] bdata = action.get(basinFiles.getName(), "default", "");
                 String bdatastring = new String(bdata);
+                bdatastring = bdatastring.replace("1992-11-29_trinity_nov_dec_2015.sqlite", basinName.get() + ".sqlite");
                 String[] blines = bdatastring.split("\n");
                 blines[0] = "Basin: " + basinName.get();
                 linesToDisk(blines, modelOutputDestination + basinName.get() + ".basin");

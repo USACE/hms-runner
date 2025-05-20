@@ -23,7 +23,7 @@ public class MetReaderTest {
             MetFileManager m = new MetFileManager(lines);
             if (m.IsValid){
                 System.out.println("valid");
-                String[]newlines = m.write(1.0,2.0);
+                String[]newlines = m.write(1.0,2.0,"stormname");
                 for(String line : newlines){
                     System.out.print(line);
                 }

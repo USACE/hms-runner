@@ -1,11 +1,12 @@
 package usace.cc.plugin.hmsrunner;
+import java.util.Map;
+import java.util.Optional;
+
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
-import usace.cc.plugin.Payload;
-import usace.cc.plugin.PluginManager;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class DssToCsvAction {
     private Action action;
@@ -13,14 +14,17 @@ public class DssToCsvAction {
         action = a;
     }
     public void computeAction(){
-        //get instance of plugin manager
-        PluginManager pm = PluginManager.getInstance();
         //find source 
-        DataSource source = action.getParameters().get("source");
+        Optional<DataSource> opSource = action.getInputDataSource("source");
+        if(!opSource.isPresent()){
+            System.out.println("could not find input datasource named source");
+            return;
+        }
+        DataSource source = opSource.get();
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths()[0]);//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -28,20 +32,23 @@ public class DssToCsvAction {
             return;
         }
         //find destination parameter
-        DataSource destination = action.getParameters().get("destination");
-        Payload payload = pm.getPayload();
+        Optional<DataSource> opDestination = action.getOutputDataSource("destination");
+        if(!opDestination.isPresent()){
+            System.out.println("could not find otput datasource named destination");
+            return;
+        }
+        //DataSource destination = opDestination.get();
         //read time series from source
-        int pathIndex = 0;
-        for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
-            boolean hasMultiplier = payload.getAttributes().containsKey(p + "- multiplier");
-            float multiplier = 1.0f;
-            if (hasMultiplier){
-                float mult = Float.parseFloat((String) payload.getAttributes().get(p + " - multiplier"));
+        for(Map.Entry<String,String> es : source.getDataPaths().get().entrySet()){//assumes datapaths for source and dest are ordered the same.
+            Optional<Double> hasMultiplier = action.getAttributes().get(es.getValue() + "- multiplier");
+            Double multiplier = 1.0d;
+            if (hasMultiplier.isPresent()){
+                Double mult = (hasMultiplier.get());
                 multiplier = mult;
             }
             StringBuilder flows = new StringBuilder();
             TimeSeriesContainer tsc = new TimeSeriesContainer();
-                tsc.fullName = p;
+                tsc.fullName = es.getValue();
 
                 status = reader.read(tsc,true);
                 if (status <0){
@@ -64,9 +71,12 @@ public class DssToCsvAction {
                 }
                 //write time series to destination csv file based on the datasource path.
                 byte[] flowdata = flows.toString().getBytes();
-                pm.putFile(flowdata, destination, pathIndex);
-                pathIndex++;
-                                        
+                    try {
+                        action.put(flowdata, "destination", "default", es.getKey());
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        return;
+                    }                                    
         }
         //close reader
         reader.close();

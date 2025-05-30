@@ -1,23 +1,16 @@
 package usace.cc.plugin.hmsrunner;
 
-import usace.cc.plugin.*;
+import usace.cc.plugin.api.*;
+import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 
 import java.io.File;
-import java.io.FileOutputStream;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
-
-import hms.model.Project;
-import hms.model.project.ComputeSpecification;
 import hms.Hms;
 
-public class hmsrunner  {
+public class HmsRunner  {
     public static final String PLUGINNAME = "hmsrunner";
     /**
      * @param args the command line arguments
@@ -25,73 +18,48 @@ public class hmsrunner  {
     public static void main(String[] args) {
         System.out.println(PLUGINNAME + " says hello.");
         //check the args are greater than 1
-        PluginManager pm = PluginManager.getInstance();
+        PluginManager pm;
+        try {
+            pm = PluginManager.getInstance();
+        } catch (InvalidDataStoreException e) {
+            e.printStackTrace();
+            System.out.println("could not find one of the datastores in payload to register.");
+            System.exit(-1);
+            return;
+        }
         //load payload. 
         Payload mp = pm.getPayload();
         //get Alternative name
-        String modelName = (String) mp.getAttributes().get("model_name");
-        //get simulation name?
-        String simulationName = (String) mp.getAttributes().get("simulation");
-        //get variant if it exists
-        String variantName = (String) mp.getAttributes().get("variant");
+        Optional<String> modelName = mp.getAttributes().get("model-name");
         //copy the model to local if not local
         //hard coded outputdestination is fine in a container
-        String modelOutputDestination = "/model/"+modelName+"/";
+        String modelOutputDestination = "/model/"+modelName.get()+"/";
         File dest = new File(modelOutputDestination);
         deleteDirectory(dest);
         //download the payload to list all input files
-        String hmsFilePath = "";
-        
-        for(DataSource i : mp.getInputs()){
-            try {
-                if (i.getName().contains(".hms")){
-                    //compute passing in the event config portion of the model payload
-                    hmsFilePath = modelOutputDestination + i.getName();
-                }
-                //byte[] bytes = pm.getFile(i, 0);//convert to file stream
-                InputStream fs = pm.fileReader(i, 0);
-                //write bytes locally.
-                
-                File f = new File(modelOutputDestination,i.getName());
-                
-                if (!f.getParentFile().exists()){
-                    f.getParentFile().mkdirs();
-                }
-                if (!f.createNewFile()){
-                    System.out.println(f.getPath() + " cant create or delete this location");
-                    System.exit(1);
-                }
-                try(FileOutputStream output = new FileOutputStream(f)){
-                    if(f.canWrite()){
-                        System.out.println(f.getPath() + " can write");
-                    }else{
-                        System.out.println(f.getPath() + " cannot write");
-                    }
-                    fs.transferTo(output);
-                } catch (Exception e){
-                    e.printStackTrace();
-                    System.out.println(f.getPath() + " had issues transferring byte stream");
-                    System.exit(1);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-                //return;
-            }
-
-        }    
- 
+        ioManagerToLocal(mp, modelOutputDestination);    
+         
         //perform all actions
         for (Action a : mp.getActions()){
-            pm.LogMessage(new Message(a.getDescription()));
-            switch(a.getName()){
+            pm.logMessage(new Message(a.getDescription()));
+            switch(a.getType()){
                 case "compute_forecast":
-                    ComputeForecastAction cfa = new ComputeForecastAction(a, simulationName, variantName);
+                    ComputeForecastAction cfa = new ComputeForecastAction(a);
                     cfa.computeAction();
                     break;
                 case "compute_simulation":
-                    ComputeSimulationAction csa = new ComputeSimulationAction(a, simulationName);
+                    ComputeSimulationAction csa = new ComputeSimulationAction(a);
                     csa.computeAction();
+                    break;
+                case "compute_simulation_all_placements_given_storm":
+                    ComputeSimulationAllPlacementsAction csapa = new ComputeSimulationAllPlacementsAction(a);
+                    try {
+                        csapa.computeAction();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("generic exception computing all placements");
+                        System.exit(-1);
+                    }
                     break;
                 case "dss_to_hdf": 
                     DssToHdfAction da = new DssToHdfAction(a);
@@ -114,11 +82,8 @@ public class hmsrunner  {
                     ca.computeAction();
                     break;
                 case "export_excess_precip":
-                    Project project = Project.open(hmsFilePath);
-                    ComputeSpecification spec = project.getComputeSpecification(simulationName);//move to export precip action eventually
-                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a, spec);
+                    ExportExcessPrecipAction ea = new ExportExcessPrecipAction(a);
                     ea.computeAction();
-                    project.close();
                     break;
                 case "dss_to_csv":
                     DssToCsvAction dca = new DssToCsvAction(a);
@@ -127,25 +92,36 @@ public class hmsrunner  {
                 default:
                 break;
             }
-
         }
         //push results to s3.
+        ioManagerToRemote(mp, modelOutputDestination);
 
-        for (DataSource output : mp.getOutputs()) { 
-            Path path = Paths.get(modelOutputDestination + output.getName());
-            //byte[] data;
+        Hms.shutdownEngine();
+    }
+    public static void ioManagerToLocal(IOManager iomanager, String modelOutputDestination) {
+        for(DataSource i : iomanager.getInputs()){
             try {
-                //data = Files.readAllBytes(path);//convert to filestream
-                InputStream fs = Files.newInputStream(path);
-                pm.fileWriter(fs, output, 0);
-                //pm.putFile(data, output,0);
-            } catch (IOException e) {
+                File f = new File(modelOutputDestination,i.getName());
+                iomanager.copyFileToLocal(i.getName(), "default", f.getAbsolutePath());
+
+            } catch (Exception e) {
+                System.out.println("failed copying datasource named " + i.getName() + " to local");
+                System.exit(1);
+            }
+        }
+        return;
+    }
+    public static void ioManagerToRemote(IOManager ioManager, String modelOutputDestination){
+        for (DataSource output : ioManager.getOutputs()) { 
+            Path path = Paths.get(modelOutputDestination + output.getName());
+            try {
+                ioManager.copyFileToRemote(output.getName(), "default", path.toString());
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
                 return;
             } 
         }
-        Hms.shutdownEngine();
     }
     private static boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();

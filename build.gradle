@@ -7,15 +7,15 @@ plugins {
 //Dependency Management
 repositories {
     mavenCentral()
-    maven{
-        name = "GitHubPackages"
-        // The url of the repository that contains the published artifacts
-        url = "https://maven.pkg.github.com/USACE/cc-java-sdk"
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-        }
-    }
+    //maven{
+       // name = "GitHubPackages"
+        //// The url of the repository that contains the published artifacts
+        //url = "https://maven.pkg.github.com/USACE/cc-java-sdk"
+        //credentials {
+        //    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+        //    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+        //}
+    //}
     maven {
         url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
     }
@@ -26,21 +26,23 @@ configurations {
 }
 
 dependencies {
-    implementation files('/HEC-HMS-4.12/hms.jar')
-    implementation fileTree(dir: '/HEC-HMS-4.12/lib', include: '*.jar')
-    implementation 'mil.army.usace.hec:cc-java-sdk:0.0.56'
+    implementation files('/HEC-HMS-4.13-beta.6/hms.jar')
+    implementation files('/workspaces/hms-runner/deps/cc-java-sdk-1.0.0-all.jar')
+    implementation fileTree(dir: '/HEC-HMS-4.13-beta.6/lib', include: '*.jar')
+    //implementation 'mil.army.usace.hec:cc-java-sdk:0.0.59'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
-    testImplementation files('/HEC-HMS-4.12/hms.jar')
-    testImplementation fileTree(dir: '/HEC-HMS-4.12/lib', include: '*.jar')
-    testImplementation 'mil.army.usace.hec:cc-java-sdk:0.0.56'
+    testImplementation files('/HEC-HMS-4.13-beta.6/hms.jar')
+    testImplementation fileTree(dir: '/HEC-HMS-4.13-beta.6/lib', include: '*.jar')
+    testImplementation files('/workspaces/hms-runner/deps/cc-java-sdk-1.0.0-all.jar')
+    //testImplementation 'mil.army.usace.hec:cc-java-sdk:0.0.59'
 }
 
 jar {
     zip64 = true
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     
     from {
         configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
@@ -51,7 +53,7 @@ jar {
     exclude 'META-INF/*.DSA'
 
     manifest {
-        attributes "Main-Class": "usace.cc.plugin.hmsrunner.hmsrunner"
+        attributes "Main-Class": "usace.cc.plugin.hmsrunner.HmsRunner"
     }
 }
 
@@ -60,7 +62,7 @@ test{
 }
 
 tasks.withType(Test) {
-    systemProperty "java.library.path", "/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:/HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:/HEC-HMS-4.12/jre/lib"
+    systemProperty "java.library.path", "/HEC-HMS-4.13-beta.6/bin/gdal:/HEC-HMS-4.13-beta.6/bin:/HEC-HMS-4.13-beta.6/bin/taudem:/HEC-HMS-4.13-beta.6/bin/mpi:/HEC-HMS-4.13-beta.6/jre/bin:/HEC-HMS-4.13-beta.6/jre/lib"
 }
 
 group 'mil.army.usace.hec'

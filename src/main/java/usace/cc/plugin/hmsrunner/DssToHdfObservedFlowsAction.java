@@ -1,11 +1,14 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.util.Map;
+import java.util.Optional;
+
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.io.TimeSeriesContainer;
-import usace.cc.plugin.Action;
-import usace.cc.plugin.DataSource;
+import usace.cc.plugin.api.Action;
+import usace.cc.plugin.api.DataSource;
 
 public class DssToHdfObservedFlowsAction {
     private Action action;
@@ -14,11 +17,16 @@ public class DssToHdfObservedFlowsAction {
     }
     public void computeAction(){
         //find source 
-        DataSource source = action.getParameters().get("source");
+        Optional<DataSource> opSource = action.getInputDataSource("source");
+        if(!opSource.isPresent()){
+            System.out.println("could not find input datasource named source");
+            return;
+        }
+        DataSource source = opSource.get();
         //create dss reader
         //open up the dss file. reference: https://www.hec.usace.army.mil/confluence/display/dssJavaprogrammer/General+Example
         HecTimeSeries reader = new HecTimeSeries();
-        int status = reader.setDSSFileName(source.getPaths()[0]);//assumes one path and assumes it is dss.
+        int status = reader.setDSSFileName(source.getPaths().get("default"));//assumes one path and assumes it is dss.
         if (status <0){
             //panic?
             DSSErrorMessage error = reader.getLastError();
@@ -26,9 +34,13 @@ public class DssToHdfObservedFlowsAction {
             return;
         }
         //find destination parameter
-        DataSource destination = action.getParameters().get("destination");
+        Optional<DataSource> opDestination = action.getOutputDataSource("destination");
+        if(!opDestination.isPresent()){
+            System.out.println("could not find output datasource named destination");
+        }
+        DataSource destination = opDestination.get();
         //create hdf writer
-        H5Connection writer = new H5Connection(destination.getPaths()[0]);//assumes one path and assumes it is hdf.
+        H5Connection writer = new H5Connection(destination.getPaths().get("default"));//assumes one path and assumes it is hdf.
         try {
             writer.open();
         } catch (Exception e) {
@@ -36,10 +48,9 @@ public class DssToHdfObservedFlowsAction {
             return;
         }
         //read time series from source
-        int datasetPathIndex = 0;
-        for(String p : source.getDataPaths()){//assumes datapaths for source and dest are ordered the same.
+        for(Map.Entry<String,String> es : source.getDataPaths().get().entrySet()){//assumes datapaths for source and dest are ordered the same.
             TimeSeriesContainer tsc = new TimeSeriesContainer();
-            tsc.fullName = p;
+            tsc.fullName = es.getValue();
 
             status = reader.read(tsc,true);
             if (status <0){
@@ -51,13 +62,11 @@ public class DssToHdfObservedFlowsAction {
             double[] values = tsc.values;
             //write time series to destination
             try {
-                writer.writeResSimReleases(values,destination.getDataPaths()[datasetPathIndex]);
+                writer.writeResSimReleases(values,destination.getDataPaths().get().get(es.getKey()));
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
-            }
-            datasetPathIndex++;
-                                        
+            }                           
         }
         //close reader
         reader.close();

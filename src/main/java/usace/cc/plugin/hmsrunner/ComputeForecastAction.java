@@ -1,24 +1,30 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.util.Optional;
+
 import hms.model.Project;
-import usace.cc.plugin.Action;
+import usace.cc.plugin.api.Action;
 
 public class ComputeForecastAction {
     private Action action;
-    private String simulationName;
-    private String variantName;
-    public ComputeForecastAction(Action a, String simName, String variantName) {
+    public ComputeForecastAction(Action a) {
         this.action = a;
-        this.simulationName = simName;
-        this.variantName = variantName;
     }
     public void computeAction(){
-        String hmsFilePath = action.getParameters().get("project_file").getPaths()[0];
-        System.out.println("opening project " + hmsFilePath);
-        Project project = Project.open(hmsFilePath);
-        System.out.println("preparing to run Forecast " + simulationName + ":" + variantName);
-        project.computeForecast(simulationName, variantName);
-        System.out.println("Forecast run completed for " + hmsFilePath);
-        project.close();
+        Optional<String> hmsFilePathResult = action.getAttributes().get("project_file");
+        Optional<String> simulationName =  action.getAttributes().get("simulation");
+        Optional<String> variantName = action.getAttributes().get("variant");
+        if(hmsFilePathResult.isPresent()){
+            String hmsFilePath = hmsFilePathResult.get();
+            System.out.println("opening project " + hmsFilePath);
+            Project project = Project.open(hmsFilePath);
+            System.out.println("preparing to run Forecast " + simulationName + ":" + variantName);
+            project.computeForecast(simulationName.get(), variantName.get());
+            System.out.println("Forecast run completed for " + hmsFilePath);
+            project.close();            
+        }else{
+            System.out.println("could not get string at attribute named project_file");
+        }
+
     }
 }

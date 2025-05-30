@@ -12,7 +12,7 @@ public class ComputeSimulationAction {
     }
     public void computeAction(){
         Optional<String> hmsFilePathResult = action.getAttributes().get("project_file");
-        if(hmsFilePathResult.isPresent()){
+        if(!hmsFilePathResult.isPresent()){
             System.out.println("could not get string at attribute named project_file");
             return;
         }

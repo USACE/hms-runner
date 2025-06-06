@@ -1,20 +1,29 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.poi.ss.formula.functions.Even;
+import org.jcodec.common.DictionaryCompressor.Int;
+
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
+import hec.heclib.util.HecTime;
 import hec.io.TimeSeriesContainer;
 import hms.Hms;
+import hms.gui.g.tm;
 import hms.model.Project;
 import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
@@ -34,11 +43,12 @@ public class ComputeSimulationAllPlacementsAction {
     }
     public void computeAction(){
         //get the storm name
-        Optional<String> opStormName = action.getAttributes().get("storm-name");
+        String stormName = System.getenv("CC_EVENT_IDENTIFIER");
+        /*Optional<String> opStormName = action.getAttributes().get("storm-name");
         if(!opStormName.isPresent()){
             System.out.println("could not find action attribute named storm-name");
             return;
-        }
+        }*/
         //get the base directory for the storm catalog
         Optional<DataSource> opStormCatalog = action.getInputDataSource("storm-catalog");//should be relative to the S3Datastore instance
         if(!opStormCatalog.isPresent()){
@@ -88,18 +98,27 @@ public class ComputeSimulationAllPlacementsAction {
             return;
         }
         ArrayList<Integer> durations = opDurations.get();
+        Optional<String> opPeakDataSourceName = action.getAttributes().get("peak-datasource-name");
+        if(!opPeakDataSourceName.isPresent()){
+            System.out.println("could not find action attribute named peak-datasource-name");
+            return;
+        }
         //get the storm dss file //assumes precip and temp in the same location.
         String modelOutputDestination = "/model/"+modelName.get()+"/";
+        //Files.createDirectories(Paths.get(modelOutputDestination));
         DataSource stormCatalog = opStormCatalog.get();
-        stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
+        //stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
+        String modifiedStormName = stormName;//opStormName.get();
+        modifiedStormName = modifiedStormName.replace("st","ST");
         try {
             //@ TODO fix this to not have to lowercase the st. 
-            String modifiedStormName = opStormName.get();
-            modifiedStormName = modifiedStormName.replace("st","ST");
-            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "/data/" + modifiedStormName + ".dss");
+
+            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "data/" + modifiedStormName + ".dss");
         } catch (InvalidDataSourceException | IOException | DataStoreException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+
+            System.out.println(modelOutputDestination + "data/" + modifiedStormName + ".dss not found");
+            //e.printStackTrace();
+            System.exit(-1);
         }
         
         //get the storms table. // TODO update logic to pull from tiledb
@@ -125,7 +144,28 @@ public class ComputeSimulationAllPlacementsAction {
         String[] lines = stringData.split("\n");
         SSTTable table = new SSTTable(lines);
         //filter storms table based on storm name
-        Event[] events = table.getEventsByName(opStormName.get());
+        Event[] events = table.getEventsByName(stormName);//opStormName.get());
+
+        //add additional optional filter on event number:
+        Optional<Integer> opEventNumber = action.getAttributes().get("event-number");
+        Boolean run_event = false;
+        if(opEventNumber.isPresent()){
+            run_event = true;
+            Boolean found = false;
+            Event[] tmpevents = new Event[1];
+            Integer eventnumber = opEventNumber.get();
+            for(Event e : events){
+                if (e.EventNumber.intValue()==opEventNumber.get().intValue()){
+                    tmpevents[0] = e;
+                    found = true;
+                }
+            }
+            events = tmpevents;
+            if(!found){
+                System.out.println("could not find event number " + Integer.toString(eventnumber));
+                System.exit(-1);
+            }
+        }
         //get the hms project files.
         // one datasource for hms base directory with many paths
         Optional<DataSource> opHmsDataSource = action.getInputDataSource("hms");
@@ -207,8 +247,8 @@ public class ComputeSimulationAllPlacementsAction {
         String[] mflines = mfstringData.split("\n");
         MetFileManager mfm = new MetFileManager(mflines);
         //update grid file based on storm name.
-        String stormName = opStormName.get().replace("st", "ST");
-        gflines = gfm.write(stormName,stormName);//assumes the temp grid and precip grid have the same name - not a safe assumption.
+        //String gmstormName = opStormName.get().replace("st", "ST");
+        gflines = gfm.write(modifiedStormName,modifiedStormName);//assumes the temp grid and precip grid have the same name - not a safe assumption.
         //write the updated gflines to disk.
         try {
             linesToDisk(gflines, modelOutputDestination + modelName.get() + ".grid");
@@ -242,6 +282,9 @@ public class ComputeSimulationAllPlacementsAction {
             return;
         }
         DataSource simulationDss = opSimulationDss.get();
+        String failedEvents = "";
+        Integer EventCount = 0;
+        HashMap<Integer, double[][]> peakdata = new HashMap<Integer, double[][]>();
         //loop over filtered events
         for(Event e : events){
             //update met file
@@ -304,28 +347,117 @@ public class ComputeSimulationAllPlacementsAction {
             Project project = Project.open(hmsProjectFile);
             
             //compute
-            System.out.println("preparing to run Simulation " + simulationName.get());
-            project.computeRun(simulationName.get());
-            
-            //export excess precip
-            ComputeSpecification spec = project.getComputeSpecification(simulationName.get());
-            Set<SpatialVariableType> variables = new HashSet<>();
-            variables.add(SpatialVariableType.INC_EXCESS);//why not allow for this to be parameterized too?
-            spec.exportSpatialResults(modelOutputDestination + exportedPrecipName.get(), variables);
-            //close hms
-            project.close();
-            //write exported excess precip to the cloud.
-            
-            copyFileToRemote(action, excessPrecipOutput, e.EventNumber, modelOutputDestination + exportedPrecipName.get());
-            
-            //post peak results to tiledb
-            //should i have a list of durations? should i have a list of dss pathnames?
-            double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", durations, pathNames);//need to provide event number in the path
-            // TODO write peaks to tiledb or an in memory object to flush at the end of the compute of all locations.
-            System.out.println(durationPeaks);//ta-da.
-            //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
-            copyFileToRemote(action, simulationDss, e.EventNumber, modelOutputDestination + simulationName.get() + ".dss");//need to provide event number in the path
+
+            try{
+                System.out.println("preparing to run Simulation " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
+                System.out.println(java.time.LocalDateTime.now());
+                long start = System.currentTimeMillis();
+                project.computeRun(simulationName.get());
+                checkLogFile(modelOutputDestination + simulationName.get() + ".log");
+                long end = System.currentTimeMillis();
+                System.out.println("took " + (end-start)/1000 + " seconds");
+                System.out.println("posting simulation dss to aws " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
+
+                //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
+                copyOutputFileToRemoteWithEventSubstitution(action, simulationDss, e.EventNumber, modelOutputDestination + simulationName.get() + ".dss");//need to provide event number in the path
+                start = System.currentTimeMillis();
+                System.out.println("took " + (start-end)/1000 + " seconds");
+                System.out.println("processing peaks " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
+                //post peak results to tiledb
+                //should i have a list of durations? should i have a list of dss pathnames?
+                double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", durations, pathNames);//need to provide event number in the path
+                end = System.currentTimeMillis();
+                System.out.println("took " + (end-start)/1000 + " seconds");
+                peakdata.put(e.EventNumber, durationPeaks);
+                start = System.currentTimeMillis();
+                System.out.println("posting to aws took " + (start-end)/1000 + " seconds");
+                project.close();
+                try {
+                    //read control file, update it to be 72 horus. 
+                    byte[] cdata = action.get(controlFiles.getName(), "default", "");
+                    String datastring = new String(cdata);
+                    String[] clines = datastring.split("\n");
+                    clines[0] = "Control: " + controlName.get();
+                    String st = clines[6].split(": ")[1];
+                    HecTime endtime = new HecTime(st,"00:01");
+                    endtime.addHours(72);
+                    clines[8] = "     End Date: " + endtime.date(8);
+                    linesToDisk(clines, modelOutputDestination + controlName.get() + ".control");
+                    //cis = action.getInputStream(controlFiles, "default");
+                    //FileOutputStream cfs = new FileOutputStream(modelOutputDestination + controlName.get() + ".control",false);
+                    //cis.transferTo(cfs);//igorance is bliss-
+                    //cfs.close();
+                } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                    System.exit(-1);
+                }
+
+                System.out.println("reopening project " + hmsProjectFile);
+                project = Project.open(hmsProjectFile);
+                //export excess precip
+                //end = System.currentTimeMillis();
+                System.out.println("exporting excess precip " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
+                ComputeSpecification spec = project.getComputeSpecification(simulationName.get());
+                Set<SpatialVariableType> variables = new HashSet<>();
+                variables.add(SpatialVariableType.INC_EXCESS);//why not allow for this to be parameterized too?
+                spec.exportSpatialResults(modelOutputDestination + exportedPrecipName.get(), variables);
+                end = System.currentTimeMillis();
+                System.out.println("exporting spatial excess precip took " + (end-start)/1000 + " seconds");
+                //write exported excess precip to the cloud.
+                
+                copyOutputFileToRemoteWithEventSubstitution(action, excessPrecipOutput, e.EventNumber, modelOutputDestination + exportedPrecipName.get());
+                start = System.currentTimeMillis();
+                System.out.println("posting to aws took " + (start-end)/1000 + " seconds");
+                //close hms (again)
+                project.close();
+
+            }catch (Exception ex){
+                System.out.println(e.EventNumber + " failed to compute");
+                failedEvents += Integer.toString(e.EventNumber) + ", ";
+                project.close();
+            }
+            EventCount ++;//makes sure 0 is never the value.
+                //overwrite the simulation dss file because it needs to get "cleaned" after each run.
+                String olddssfile = modelOutputDestination + simulationName.get() + ".dss";
+                File myf = new File(olddssfile);
+                myf.delete();
+
         }//next event
+        if(run_event){
+            //TODO read the csv if it is there - checkif the event row is there if it is update it. if it isnt append it.
+            System.out.println("failed events: " + failedEvents);
+            Hms.shutdownEngine();
+            return;
+        }
+        //create header row //
+        String header = "eventNumber,";
+        for(String name : pathNames){
+            header += name + ",";
+        }
+        header = header.substring(0,header.length()-1);
+        header += "\n";
+        for(Integer duration : durations){
+            //create a path//
+            //add header row.
+            StringBuilder sb = new StringBuilder();
+            sb.append(header);
+            for(Map.Entry<Integer,double[][]> en : peakdata.entrySet()){
+                double[] vals = en.getValue()[durations.indexOf(duration)];
+                sb.append(Integer.toString(en.getKey()) + ",");
+                for(double value : vals){
+                    sb.append(Double.toString(value) + ",");
+                }
+                sb.append("\n");
+            }
+            try{
+                action.put(sb.toString().getBytes(), opPeakDataSourceName.get(), Integer.toString(duration), ""); 
+            }catch(Exception ex){
+                System.out.println("failed writing duration " + Integer.toString(duration));
+            }
+                      
+        }
+        System.out.println("failed events: " + failedEvents);
         Hms.shutdownEngine();
         return;
     }
@@ -340,7 +472,18 @@ public class ComputeSimulationAllPlacementsAction {
         fs.close();
         return;
     }
-
+    private void checkLogFile(String path) throws Exception{
+        FileInputStream fs = new FileInputStream(path);
+        byte[] data = fs.readAllBytes();
+        fs.close();
+        String sdata = new String(data);
+        String[] lines = sdata.split("\n");
+        for(String line : lines){
+            if (line.contains("ERROR ")){
+                throw new Exception("hms did not indeed run.");
+            }
+        }
+    }
     private double[][] extractPeaksFromDSS(String path, ArrayList<Integer> timesteps, ArrayList<String> datapaths){
         HecTimeSeries reader = new HecTimeSeries();
         int status = reader.setDSSFileName(path);
@@ -398,7 +541,7 @@ public class ComputeSimulationAllPlacementsAction {
         reader.closeAndClear(); //why so many close options? seems like close should do what it needs to do.
         return result;
     }
-    private void copyFileToRemote(IOManager iomanager, DataSource ds, int eventNumber, String localPath){
+    private void copyOutputFileToRemoteWithEventSubstitution(IOManager iomanager, DataSource ds, int eventNumber, String localPath){
         InputStream is;
         try {
             is = new FileInputStream(localPath);
@@ -423,7 +566,7 @@ public class ComputeSimulationAllPlacementsAction {
         }
         
         //modify default
-        String path = ds.getPaths().get("default").replace("eventnumber", Integer.toString(eventNumber));
+        String path = ds.getPaths().get("default").replace("$<eventnumber>", Integer.toString(eventNumber));
         try {
             s3store.put(is, path);
         } catch (DataStoreException e) {

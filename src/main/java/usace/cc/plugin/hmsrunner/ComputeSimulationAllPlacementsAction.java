@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -284,11 +285,13 @@ public class ComputeSimulationAllPlacementsAction {
         DataSource simulationDss = opSimulationDss.get();
         String failedEvents = "";
         Integer EventCount = 0;
-        HashMap<Integer, double[][]> peakdata = new HashMap<Integer, double[][]>();
+        LinkedHashMap<Integer, double[][]> peakdata = new LinkedHashMap<Integer, double[][]>();
+        LinkedHashMap<Integer,LinkedHashMap<String,Long>> timelog = new LinkedHashMap<Integer,LinkedHashMap<String,Long>>();
         //loop over filtered events
         for(Event e : events){
             //update met file
             mflines = mfm.write(e.X,e.Y, stormName);
+            LinkedHashMap<String, Long> eventtimes = new LinkedHashMap<String,Long>();
             //write lines to disk.
             try {
                 linesToDisk(mflines, modelOutputDestination + metName.get() + ".met");
@@ -355,21 +358,25 @@ public class ComputeSimulationAllPlacementsAction {
                 project.computeRun(simulationName.get());
                 checkLogFile(modelOutputDestination + simulationName.get() + ".log");
                 long end = System.currentTimeMillis();
+                eventtimes.put("computing simulation", (end-start)/1000);
                 System.out.println("took " + (end-start)/1000 + " seconds");
                 System.out.println("posting simulation dss to aws " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
 
                 //post simulation dss (for updating hdf files later) - alternatively write time series to tiledb
                 copyOutputFileToRemoteWithEventSubstitution(action, simulationDss, e.EventNumber, modelOutputDestination + simulationName.get() + ".dss");//need to provide event number in the path
                 start = System.currentTimeMillis();
+                eventtimes.put("posting simulation dss to aws", (start-end)/1000);
                 System.out.println("took " + (start-end)/1000 + " seconds");
                 System.out.println("processing peaks " + simulationName.get() + " for event number " + Integer.toString(e.EventNumber));
                 //post peak results to tiledb
                 //should i have a list of durations? should i have a list of dss pathnames?
                 double [][] durationPeaks = extractPeaksFromDSS(modelOutputDestination + simulationName.get() + ".dss", durations, pathNames);//need to provide event number in the path
                 end = System.currentTimeMillis();
+                eventtimes.put("processing peaks", (end-start)/1000);
                 System.out.println("took " + (end-start)/1000 + " seconds");
                 peakdata.put(e.EventNumber, durationPeaks);
                 start = System.currentTimeMillis();
+                eventtimes.put("posting peaks to map", (start-end)/1000);
                 System.out.println("posting to aws took " + (start-end)/1000 + " seconds");
                 project.close();
                 try {
@@ -403,11 +410,13 @@ public class ComputeSimulationAllPlacementsAction {
                 variables.add(SpatialVariableType.INC_EXCESS);//why not allow for this to be parameterized too?
                 spec.exportSpatialResults(modelOutputDestination + exportedPrecipName.get(), variables);
                 end = System.currentTimeMillis();
+                eventtimes.put("exporting spatial results", (end-start)/1000);
                 System.out.println("exporting spatial excess precip took " + (end-start)/1000 + " seconds");
                 //write exported excess precip to the cloud.
                 
                 copyOutputFileToRemoteWithEventSubstitution(action, excessPrecipOutput, e.EventNumber, modelOutputDestination + exportedPrecipName.get());
                 start = System.currentTimeMillis();
+                eventtimes.put("posting spatial results to aws", (start-end)/1000);
                 System.out.println("posting to aws took " + (start-end)/1000 + " seconds");
                 //close hms (again)
                 project.close();
@@ -416,12 +425,14 @@ public class ComputeSimulationAllPlacementsAction {
                 System.out.println(e.EventNumber + " failed to compute");
                 failedEvents += Integer.toString(e.EventNumber) + ", ";
                 project.close();
+                timelog.put(e.EventNumber, eventtimes);
             }
             EventCount ++;//makes sure 0 is never the value.
                 //overwrite the simulation dss file because it needs to get "cleaned" after each run.
                 String olddssfile = modelOutputDestination + simulationName.get() + ".dss";
                 File myf = new File(olddssfile);
                 myf.delete();
+                timelog.put(e.EventNumber, eventtimes);
 
         }//next event
         if(run_event){
@@ -458,6 +469,20 @@ public class ComputeSimulationAllPlacementsAction {
                       
         }
         System.out.println("failed events: " + failedEvents);
+        String timelogstring ="event_number,";
+        LinkedHashMap<String,Long> first = ((Map.Entry<Integer, LinkedHashMap<String, Long>>)timelog.entrySet().toArray()[0]).getValue();
+        for(Map.Entry<String, Long> r : first.entrySet()){
+            timelogstring += r.getKey() + ",";
+        }
+        timelogstring += "\n";
+        for(Map.Entry<Integer, LinkedHashMap<String, Long>> e : timelog.entrySet()){
+            timelogstring += Integer.toString(e.getKey()) + ",";
+            for(Map.Entry<String, Long> r : e.getValue().entrySet()){
+                timelogstring += Long.toString(r.getValue()) + ",";
+            }
+            timelogstring += "\n";
+        }
+        System.out.println(timelogstring);
         Hms.shutdownEngine();
         return;
     }

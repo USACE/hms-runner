@@ -34,6 +34,7 @@ import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 import usace.cc.plugin.api.IOManager;
 import usace.cc.plugin.api.IOManager.InvalidDataSourceException;
+import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 import usace.cc.plugin.api.Action;
 
 public class ComputeSimulationAllPlacementsAction {
@@ -102,6 +103,11 @@ public class ComputeSimulationAllPlacementsAction {
         Optional<String> opPeakDataSourceName = action.getAttributes().get("peak-datasource-name");
         if(!opPeakDataSourceName.isPresent()){
             System.out.println("could not find action attribute named peak-datasource-name");
+            return;
+        }
+        Optional<String> opLogDataSourceName = action.getAttributes().get("log-datasource-name");
+        if(!opLogDataSourceName.isPresent()){
+            System.out.println("could not find action attribute named log-datasource-name");
             return;
         }
         //get the storm dss file //assumes precip and temp in the same location.
@@ -468,7 +474,20 @@ public class ComputeSimulationAllPlacementsAction {
             }
                       
         }
-        System.out.println("failed events: " + failedEvents);
+        
+        if( failedEvents.equals("")){
+            System.out.println("No events failed");
+        }else{
+            String f = "failed events: " + failedEvents;
+            System.out.println(f);
+            
+            try {
+                action.put(f.toString().getBytes(), opLogDataSourceName.get(), "failed_events", "");
+            } catch (Exception e1) {
+                System.out.println("failed writing failed events");
+            }
+        }
+        
         String timelogstring ="event_number,";
         LinkedHashMap<String,Long> first = ((Map.Entry<Integer, LinkedHashMap<String, Long>>)timelog.entrySet().toArray()[0]).getValue();
         for(Map.Entry<String, Long> r : first.entrySet()){
@@ -483,6 +502,11 @@ public class ComputeSimulationAllPlacementsAction {
             timelogstring += "\n";
         }
         System.out.println(timelogstring);
+        try {
+            action.put(timelogstring.toString().getBytes(), opLogDataSourceName.get(), "time_log", "");
+        } catch (Exception e1) {
+            System.out.println("failed writing timelogs");
+        }
         Hms.shutdownEngine();
         return;
     }

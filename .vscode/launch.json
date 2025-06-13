@@ -9,11 +9,11 @@
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:HEC-HMS-4.12/jre/lib/",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.13-beta.6/bin/gdal:/HEC-HMS-4.13-beta.6/bin:/HEC-HMS-4.13-beta.6/bin/taudem:/HEC-HMS-4.13-beta.6/bin/mpi:/HEC-HMS-4.13-beta.6/jre/bin:/HEC-HMS-4.13-beta.6/jre/lib/",
             "args": "",
             "env": {
-                "GDAL_DATA": "/HEC-HMS-4.12/bin/gdal/gdal-data",
-                "PROJ_LIB": "/HEC-HMS-4.12/bin/gdal/proj",
+                "GDAL_DATA": "/HEC-HMS-4.13-beta.6/bin/gdal/gdal-data",
+                "PROJ_LIB": "/HEC-HMS-4.13-beta.6/bin/gdal/proj",
                 "CC_AWS_DEFAULT_REGION": "us-east-1",
                 "CC_AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
                 "CC_AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
@@ -32,16 +32,26 @@
                 "FFRD_S3_ENDPOINT": "host.docker.internal:9000",
                 "FFRD_S3_MOCK": true,
                 "FFRD_S3_DISABLE_SSL": true,
-                "FFRD_S3_FORCE_PATH_STYLE": true,
+                "FFRD_S3_FORCE_PATH_STYLE": true
             }
-        },{
+        },
+        {
             "type": "java",
-            "name": "Launch Current File with ENV",
+            "name": "compute-all-placements",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.12/bin/gdal:/HEC-HMS-4.12/bin:/HEC-HMS-4.12/bin/taudem:HEC-HMS-4.12/bin/mpi:/HEC-HMS-4.12/jre/bin:HEC-HMS-4.12/jre/lib/",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.13-beta.6/bin/gdal:/HEC-HMS-4.13-beta.6/bin:/HEC-HMS-4.13-beta.6/bin/taudem:/HEC-HMS-4.13-beta.6/bin/mpi:/HEC-HMS-4.13-beta.6/jre/bin:/HEC-HMS-4.13-beta.6/jre/lib/",
             "args": "",
-            "envFile": "/workspaces/.env" 
+            "envFile": "/workspaces/.env-all-placements"
+        },
+        {
+            "type": "java",
+            "name": "compute-muncie",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.13-beta.6/bin/gdal:/HEC-HMS-4.13-beta.6/bin:/HEC-HMS-4.13-beta.6/bin/taudem:/HEC-HMS-4.13-beta.6/bin/mpi:/HEC-HMS-4.13-beta.6/jre/bin:/HEC-HMS-4.13-beta.6/jre/lib/",
+            "args": "",
+            "envFile": "/workspaces/.env-muncie"
         }
     ]
 }

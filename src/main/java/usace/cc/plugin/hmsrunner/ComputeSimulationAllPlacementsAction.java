@@ -153,7 +153,7 @@ public class ComputeSimulationAllPlacementsAction {
         //filter storms table based on storm name
         Event[] events = table.getEventsByName(stormName);//opStormName.get());
 
-        //add additional optional filter on event number:
+        //add additional optional filter on event number://TODO convert this to an array instead of a single int
         Optional<Integer> opEventNumber = action.getAttributes().get("event-number");
         Boolean run_event = false;
         if(opEventNumber.isPresent()){

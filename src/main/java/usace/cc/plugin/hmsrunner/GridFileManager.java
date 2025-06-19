@@ -20,7 +20,9 @@ public GridFileManager(String[] lines){
         blines.add(line);
         if (line.contains("Grid Type: ")){
             if (line.contains("Precipitation")){
-                isPrecip = true;
+                if(!line.contains("-Normal")){
+                    isPrecip = true;
+                }
             }else if(line.contains("Temperature")){
                 isTemp = true;
             }

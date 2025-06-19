@@ -38,6 +38,9 @@ public MetFileManager(String[] lines){
                 if(line.contains("NONE")){
                     isValid = true;
                 }
+                if(line.contains("NORMALIZE")){
+                    isValid = true;
+                }
             }
         }
         if( line.contains("End:")){

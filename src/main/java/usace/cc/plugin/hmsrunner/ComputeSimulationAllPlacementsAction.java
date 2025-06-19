@@ -1,11 +1,15 @@
 package usace.cc.plugin.hmsrunner;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -44,8 +48,18 @@ public class ComputeSimulationAllPlacementsAction {
         this.action = action;
     }
     public void computeAction(){
+        String eventId = System.getenv("CC_EVENT_IDENTIFIER");
+        Integer eventNumber = -1;
+        Boolean computeByEventNumber = false;
+        try{
+            eventNumber = Integer.parseInt(eventId);
+            computeByEventNumber = true;
+        }catch(NumberFormatException ex){
+
+        }
+        
         //get the storm name
-        String stormName = System.getenv("CC_EVENT_IDENTIFIER");
+        String stormName = eventId;//placeholder
         /*Optional<String> opStormName = action.getAttributes().get("storm-name");
         if(!opStormName.isPresent()){
             System.out.println("could not find action attribute named storm-name");
@@ -115,18 +129,7 @@ public class ComputeSimulationAllPlacementsAction {
         //Files.createDirectories(Paths.get(modelOutputDestination));
         DataSource stormCatalog = opStormCatalog.get();
         //stormCatalog.getPaths().put("default", stormCatalog.getPaths().get("storm-catalog-prefix") + "/" + opStormName.get() + ".dss");//not sure if .dss is needed 
-        String modifiedStormName = stormName;//opStormName.get();
-        modifiedStormName = modifiedStormName.replace("st","ST");
-        try {
-            //@ TODO fix this to not have to lowercase the st. 
 
-            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "data/" + modifiedStormName + ".dss");
-        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
-
-            System.out.println(modelOutputDestination + "data/" + modifiedStormName + ".dss not found");
-            //e.printStackTrace();
-            System.exit(-1);
-        }
         
         //get the storms table. // TODO update logic to pull from tiledb
         Optional<DataSource> opStormsTable = action.getInputDataSource("storms");
@@ -151,27 +154,54 @@ public class ComputeSimulationAllPlacementsAction {
         String[] lines = stringData.split("\n");
         SSTTable table = new SSTTable(lines);
         //filter storms table based on storm name
+        if(computeByEventNumber){
+            for(Event e : table.Events){
+                if (e.EventNumber.intValue()==eventNumber){
+                    stormName = e.StormPath.substring(0,e.StormPath.length()-4);//remove.dss
+                }
+            }
+            String[] prefixparts = stormCatalog.getPaths().get("default").split("/");
+            prefixparts[prefixparts.length-1] = stormName + ".dss";
+            String path = "";
+            for(String p : prefixparts){
+                path += p + "/";
+            }
+            path = path.substring(0,path.length()-1);
+            stormCatalog.getPaths().put("default", path);      
+        }
         Event[] events = table.getEventsByName(stormName);//opStormName.get());
 
         //add additional optional filter on event number://TODO convert this to an array instead of a single int
-        Optional<Integer> opEventNumber = action.getAttributes().get("event-number");
-        Boolean run_event = false;
-        if(opEventNumber.isPresent()){
-            run_event = true;
+        //Optional<Integer> opEventNumber = action.getAttributes().get("event-number");
+        //Boolean run_event = false;
+        if(computeByEventNumber){
+            //run_event = true;
             Boolean found = false;
             Event[] tmpevents = new Event[1];
-            Integer eventnumber = opEventNumber.get();
             for(Event e : events){
-                if (e.EventNumber.intValue()==opEventNumber.get().intValue()){
+                if (e.EventNumber.intValue()==eventNumber){
                     tmpevents[0] = e;
                     found = true;
                 }
             }
             events = tmpevents;
             if(!found){
-                System.out.println("could not find event number " + Integer.toString(eventnumber));
+                System.out.println("could not find event number " + Integer.toString(eventNumber));
                 System.exit(-1);
             }
+        }
+
+        String modifiedStormName = stormName;//opStormName.get();
+        modifiedStormName = modifiedStormName.replace("st","ST");
+        try {
+            //@ TODO fix this to not have to lowercase the st. 
+
+            action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "data/" + modifiedStormName + ".dss");
+        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+
+            System.out.println(modelOutputDestination + "data/" + modifiedStormName + ".dss not found");
+            //e.printStackTrace();
+            System.exit(-1);
         }
         //get the hms project files.
         // one datasource for hms base directory with many paths
@@ -383,7 +413,7 @@ public class ComputeSimulationAllPlacementsAction {
                 peakdata.put(e.EventNumber, durationPeaks);
                 start = System.currentTimeMillis();
                 eventtimes.put("posting peaks to map", (start-end)/1000);
-                System.out.println("posting to aws took " + (start-end)/1000 + " seconds");
+                System.out.println("posting peaks to map took " + (start-end)/1000 + " seconds");
                 project.close();
                 try {
                     //read control file, update it to be 72 horus. 
@@ -441,8 +471,81 @@ public class ComputeSimulationAllPlacementsAction {
                 timelog.put(e.EventNumber, eventtimes);
 
         }//next event
-        if(run_event){
-            //TODO read the csv if it is there - checkif the event row is there if it is update it. if it isnt append it.
+        //if(failedEvents)
+        if(computeByEventNumber){
+            if(!failedEvents.equals("")){
+                System.out.println("event failed: " +failedEvents);
+                System.exit(-1);
+            }
+            
+            System.out.println("event " + eventNumber + " updating peak files.");
+            for(Integer duration : durations){
+                //get the old data
+                System.out.println("processing duration " + Integer.toString(duration));
+                byte[] olddata = null;
+                try {
+                    Optional<DataSource> opDest = action.getOutputDataSource(opPeakDataSourceName.get());
+                    DataSource dest = opDest.get();
+                    dest.getPaths().put(Integer.toString(duration), dest.getPaths().get(Integer.toString(duration)).replace(Integer.toString(eventNumber),stormName));
+                    InputStream is = action.getInputStream(dest, Integer.toString(duration));
+                    olddata = is.readAllBytes();
+                    //olddata = action.get(opPeakDataSourceName.get(),Integer.toString(duration), ""); get only uses input data sources.
+                } catch (InvalidDataSourceException e1) {
+                    
+                    System.out.println("invalid datasource");
+                    System.exit(-1);
+                } catch (IOException e1) {
+                    
+                    System.out.println("io exception");
+                    System.exit(-1);
+                } catch (DataStoreException e1) {
+                    
+                    System.out.println("datastre exception");
+                    System.exit(-1);
+                }
+                String olddatastring = new String(olddata);
+                String[] oldRows = olddatastring.split("\n");
+                Integer oldrowindex = -1;
+                Integer tmpIndex = 0;
+                for(String row : oldRows){
+                    String[] items = row.split(",");
+                    if(items[0].equals(Integer.toString(eventNumber))){
+                        oldrowindex = tmpIndex;
+                    }
+                    tmpIndex ++;
+                }
+                StringBuilder row = new StringBuilder();
+                for(Map.Entry<Integer,double[][]> en : peakdata.entrySet()){
+                    double[] vals = en.getValue()[durations.indexOf(duration)];
+                    row.append(Integer.toString(en.getKey()) + ",");
+                    for(double value : vals){
+                        row.append(Double.toString(value) + ",");
+                    }
+                    row.append("\n");
+                }
+
+                StringBuilder newData = new StringBuilder();
+                tmpIndex = 0;
+                for(String oldRow : oldRows){
+                    if(tmpIndex.intValue()==oldrowindex.intValue()){
+                        newData.append(row.toString());
+                        System.out.println("upserting " + row.toString());
+                    }else{
+                        newData.append(oldRow + "\n");
+                    }
+                    tmpIndex +=1;
+                }
+                if (oldrowindex.intValue()==-1){
+                    newData.append(row.toString());
+                    System.out.println("appending " + row.toString());
+                }
+                try{
+                    action.put(newData.toString().getBytes(), opPeakDataSourceName.get(), Integer.toString(duration), ""); 
+                }catch(Exception ex){
+                    System.out.println("failed writing duration " + Integer.toString(duration));
+                }
+                          
+            }
             System.out.println("failed events: " + failedEvents);
             Hms.shutdownEngine();
             return;

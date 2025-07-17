@@ -468,6 +468,10 @@ public class ComputeSimulationAllPlacementsAction {
                 String olddssfile = modelOutputDestination + simulationName.get() + ".dss";
                 File myf = new File(olddssfile);
                 myf.delete();
+                //overwrite the exported precip file because it needs to get "cleaned" after each run. //incidentally this works for both hdf or dss depending on the action prarmeter
+                String oldprecipfile = modelOutputDestination + exportedPrecipName.get();
+                File myprecipfile = new File(oldprecipfile);
+                myprecipfile.delete();
                 timelog.put(e.EventNumber, eventtimes);
 
         }//next event

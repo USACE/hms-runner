@@ -34,7 +34,7 @@ public class DssToHdfAction {
             return;
         }
         //find destination parameter
-        Optional<DataSource> opDestination = action.getInputDataSource("destination");
+        Optional<DataSource> opDestination = action.getOutputDataSource("destination");
         if(!opDestination.isPresent()){
             System.out.println("could not find output datasource named destination");
             return;

@@ -191,7 +191,7 @@ public class H5Connection {
         String ICPointNamesTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Names";
         String ICPointElevationsTable = "Event Conditions/Unsteady/Initial Conditions/IC Point Elevations";
         String StartingPoolCellTable = "Event Conditions/Unsteady/Initial Conditions/2D Flow Areas";
-        String[] stringcells = csvCells.split(", ");
+        String[] stringcells = csvCells.split(",");
         //open names table, find index of point name
         //open source dataset
         int sourceId = openDataset(ICPointNamesTable, this.fileId);

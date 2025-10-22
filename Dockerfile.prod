@@ -1,0 +1,53 @@
+FROM openjdk:17-jdk-slim-bullseye AS builder
+
+ENV TZ=America/New_York
+ENV GRADLE_HOME=/opt/gradle/latest
+ENV PATH=${GRADLE_HOME}/bin:$PATH
+ARG HMS_VERSION=4.13-beta.6
+ARG HMS_PLATFORM=linux64
+ARG HMS_HOME=HEC-HMS-4.13-beta.6
+
+#need to get the jdk.
+RUN apt update &&\
+    apt -y install wget &&\
+    apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1 libgfortran5 &&\
+    wget https://www.hec.usace.army.mil/nexus/repository/maven-public/mil/army/usace/hec/hec-hms/${HMS_VERSION}-${HMS_PLATFORM}/hec-hms-${HMS_VERSION}-${HMS_PLATFORM}.tar.gz -P / &&\
+    mkdir /${HMS_HOME} &&\
+    tar -xvzf /hec-hms-${HMS_VERSION}-${HMS_PLATFORM}.tar.gz -C /${HMS_HOME} --strip-components=1 &&\
+    apt -y install git &&\
+    apt -y install unzip &&\
+    wget https://services.gradle.org/distributions/gradle-7.3.1-bin.zip -P /tmp &&\
+    unzip -d /opt/gradle /tmp/gradle-7.3.1-bin.zip &&\
+    ln -s /opt/gradle/gradle-7.3.1 /opt/gradle/latest &&\
+    mkdir -p /app
+
+WORKDIR /app
+#clone repo
+RUN git clone https://github.com/USACE/hms-runner.git
+WORKDIR /app/hms-runner
+#build gradle
+COPY deps/cc-java-sdk-1.0.0-all.jar /workspaces/hms-runner/deps/cc-java-sdk-1.0.0-all.jar
+RUN gradle build --no-daemon -x test
+
+FROM ubuntu:20.04 AS prod
+
+ARG HMS_HOME=HEC-HMS-4.13-beta.6
+
+RUN apt update
+RUN mkdir -p /hms
+RUN apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1 openjdk-17-jre
+RUN mkdir -p  /${HMS_HOME}
+
+COPY --from=builder /app/hms-runner/build/libs /hms
+COPY --from=builder /${HMS_HOME} /${HMS_HOME}
+COPY --from=builder /workspaces/hms-runner/deps/cc-java-sdk-1.0.0-all.jar /${HMS_HOME}/lib
+ENV HMS_HOME=${HMS_HOME}
+ENV PROG=hms.hms
+ENV PATH=/${HMS_HOME}/bin/taudem:${HMS_HOME}/bin/mpi:${HMS_HOME}/bin:${HMS_HOME}/jre/bin/:${HMS_HOME}/jre/lib/:$PATH
+ENV GDAL_DATA=/${HMS_HOME}/bin/gdal/gdal-data
+ENV PROJ_LIB=/${HMS_HOME}/bin/gdal/proj
+ENV CLASSPATH=/${HMS_HOME}/*:${HMS_HOME}/lib/*:${HMS_HOME}/lib/hec/*:${HMS_HOME}/jre/lib/*
+ENV JAVA_OPTS="-Djava.library.path=/${HMS_HOME}/bin/gdal:${HMS_HOME}/bin"
+
+WORKDIR hms
+ENTRYPOINT ["/usr/lib/jvm/java-17-openjdk-amd64/bin/java", "-Djava.library.path=/HEC-HMS-4.13-beta.6/bin/gdal:/HEC-HMS-4.13-beta.6/bin:/HEC-HMS-4.13-beta.6/bin/taudem:/HEC-HMS-4.13-beta.6/bin/mpi:/HEC-HMS-4.13-beta.6/jre/bin:/HEC-HMS-4.13-beta.6/jre/lib/", "-jar", "hms-runner-0.0.1.jar"]

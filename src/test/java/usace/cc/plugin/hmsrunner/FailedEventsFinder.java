@@ -14,7 +14,7 @@ public class FailedEventsFinder {
         @Test
     public static void main(String[] args){
         System.out.println("testing read failed events");
-        File folder = new File("/workspaces/hms-runner/testdata/trinity/hydrology/logs/");
+        File folder = new File("/workspaces/hms-runner/testdata/trinity/conformance/simulations/logs/hydrology/");
         Map<String,ArrayList<Integer>> failures = new HashMap<String,ArrayList<Integer>>();
         for(File f: folder.listFiles()){
             if(!f.isDirectory()){
@@ -47,6 +47,15 @@ public class FailedEventsFinder {
                 s += "," + Integer.toString(i);
             }
             s += "\n";
+        }
+        System.out.println(s);
+        s = "";
+        for(Map.Entry<String,ArrayList<Integer>> e : failures.entrySet()){
+            //s += e.getKey();
+            for(Integer i : e.getValue()){
+                s += "," + Integer.toString(i);
+            }
+            //s += "\n";
         }
         System.out.println(s);
     }

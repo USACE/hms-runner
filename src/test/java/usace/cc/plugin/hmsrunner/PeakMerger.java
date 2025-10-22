@@ -14,7 +14,7 @@ public class PeakMerger {
     public static void main(String[] args){
         System.out.println("merging peak files");
         String duration = "72h_peaks";
-        File folder = new File("/workspaces/hms-runner/testdata/trinity/conformance/simulations/summary-data/hydrology_not_normalized/");
+        File folder = new File("/workspaces/hms-runner/testdata/trinity/conformance/simulations/summary-data/hydrology/");
         String[] lines = new String[20000];
         String mainheader = "";
         for(File f: folder.listFiles()){
@@ -49,7 +49,7 @@ public class PeakMerger {
         }
         FileOutputStream output;
         try {
-            output = new FileOutputStream("/workspaces/hms-runner/testdata/trinity/conformance/simulations/summary-data/hydrology_not_normalized_" + duration + ".csv");
+            output = new FileOutputStream("/workspaces/hms-runner/testdata/trinity/conformance/simulations/summary-data/hydrology_iteration2_" + duration + ".csv");
             output.write(s.getBytes());
             output.close();
         } catch (FileNotFoundException e1) {

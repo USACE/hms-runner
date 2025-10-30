@@ -1,5 +1,5 @@
 # hms-runner
-a lightweight hms runner in linux for wat-api
+a lightweight hms runner in linux for cloud-compute
 
 # building this project
 To build this project follow these steps

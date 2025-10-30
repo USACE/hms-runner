@@ -1,6 +1,9 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.model;
 
 import java.util.ArrayList;
+
+
+import usace.cc.plugin.hmsrunner.utils.Event;
 
 public class SSTTable {
     Event[] Events;
@@ -32,6 +35,9 @@ public class SSTTable {
 
         }
 
+    }
+    public Event[] getEvents(){
+        return Events;
     }
     public Event[] getEventsByName(String name){
         ArrayList<Event> events = new ArrayList<Event>();

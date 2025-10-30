@@ -1,6 +1,7 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.model;
 
 import java.util.ArrayList;
+import usace.cc.plugin.hmsrunner.utils.Block;
 
 public class MetFileManager {
 //read in and parse a met file

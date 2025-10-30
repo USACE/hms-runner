@@ -1,4 +1,4 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.utils;
 
 
 public class Event {

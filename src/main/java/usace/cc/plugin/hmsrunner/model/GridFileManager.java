@@ -1,6 +1,7 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.model;
 
 import java.util.ArrayList;
+import usace.cc.plugin.hmsrunner.utils.Block;
 
 public class GridFileManager {
 //read in a grid file - parse it into the precipitation and temperature grids

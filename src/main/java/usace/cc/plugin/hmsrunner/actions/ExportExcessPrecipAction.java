@@ -1,4 +1,4 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.actions;
 
 import usace.cc.plugin.api.Action;
 

@@ -1,34 +1,23 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.actions;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.poi.ss.formula.functions.Even;
-import org.jcodec.common.DictionaryCompressor.Int;
-
 import hec.heclib.dss.DSSErrorMessage;
 import hec.heclib.dss.HecTimeSeries;
 import hec.heclib.util.HecTime;
 import hec.io.TimeSeriesContainer;
 import hms.Hms;
-import hms.gui.g.tm;
 import hms.model.Project;
 import hms.model.data.SpatialVariableType;
 import hms.model.project.ComputeSpecification;
@@ -38,8 +27,11 @@ import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 import usace.cc.plugin.api.IOManager;
 import usace.cc.plugin.api.IOManager.InvalidDataSourceException;
-import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 import usace.cc.plugin.api.Action;
+import usace.cc.plugin.hmsrunner.utils.Event;
+import usace.cc.plugin.hmsrunner.model.SSTTable;
+import usace.cc.plugin.hmsrunner.model.GridFileManager;
+import usace.cc.plugin.hmsrunner.model.MetFileManager;
 
 public class ComputeSimulationAllPlacementsAction {
     //compute all placement/basin file locations per storm name
@@ -155,7 +147,7 @@ public class ComputeSimulationAllPlacementsAction {
         SSTTable table = new SSTTable(lines);
         //filter storms table based on storm name
         if(computeByEventNumber){
-            for(Event e : table.Events){
+            for(Event e : table.getEvents()){
                 if (e.EventNumber.intValue()==eventNumber){
                     stormName = e.StormPath.substring(0,e.StormPath.length()-4);//remove.dss
                 }

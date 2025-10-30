@@ -1,4 +1,4 @@
-package usace.cc.plugin.hmsrunner;
+package usace.cc.plugin.hmsrunner.utils;
 
 public class Block {
     //represents a block starting with a keyword: and ending with END: in a grid or met file.

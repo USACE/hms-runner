@@ -1,13 +1,13 @@
 # DssToHdfAction
 
 # Description
-Supports the process of converting HEC-DSS timeseries output into HDF tables. Since the HEC-HMS output of the timeseries DSS is local after the HMS compute, it is simple to push the result to all HEC-RAS hdf files at that time to minimize loading the DSS for each ras model at a later time. Though if modifications to an HDF file happen after HEC-HMS has computed, this action can be used to modify the new HDF files with the previously computed DSS files also.
+Supports the process of converting HEC-DSS timeseries output into HDF tables for time series output for 2d structures in HEC-RAS. Since the HEC-HMS output of the timeseries DSS is local after the HMS compute, it is simple to push the result to all HEC-RAS hdf files at that time to minimize loading the DSS for each ras model at a later time. Though if modifications to an HDF file happen after HEC-HMS has computed, this action can be used to modify the new HDF files with the previously computed DSS files also.
 
 # Implementation Details
 
 # Process Flow
 This action assumes the input files exist within the container before computing.
-The action opens the source input DSS at the default path in defined in the action, copies all records from the data-paths, and pastes the copied time series in the destination output datasource for all matching specified data-path keys in the destination HDF file.
+The action opens the source input DSS at the default path in defined in the action, copies all records from the data-paths, and pastes the copied time series in the destination output datasource for all matching specified data-path keys in the destination HDF file. This specific action differs from dss_to_hdf in that it adjusts the timestep of the data by a half timestep to convert per-average to inst-val. Typically, this is done for output from HEC-ResSim into HEC-RAS, but can be used for HEC-HMS output into HEC-RAS too depending on circumstances of the dams.
 # Configuration
 
    ## Environment
@@ -15,7 +15,7 @@ The action opens the source input DSS at the default path in defined in the acti
    ## Attributes
    * any substitution variables.
    ### Action
-   * dss_to_hdf
+   * dss_to_hdf_tsout
 
    ### Global
 
@@ -56,14 +56,13 @@ The action opens the source input DSS at the default path in defined in the acti
                 "store_name": "FFRD"
             },
             {
-                "name": "{ATTR::hydrology-simulation}.dss",
+                "name": "simulation.dss",
                 "paths": {
-                    "default": "{ATTR::scenario}/{ATTR::outputroot}/{ENV::CC_EVENT_IDENTIFIER}/{ATTR::base-hydrology-directory}/{ATTR::hydrology-simulation}.dss"
+                    "default": "{ATTR::scenario}/{ATTR::outputroot}/{ENV::CC_EVENT_IDENTIFIER}/{ATTR::base-reservoir-operations-directory}/simulation.dss"
                 },
                 "store_name": "FFRD"
             }
         ],
-
     },
    "outputs": [
         {
@@ -86,10 +85,10 @@ The action opens the source input DSS at the default path in defined in the acti
         }
     ],
    "actions":[
-         {  
-            "description": "updating baseflows from hms output",
-            "name": "dss_to_hdf",
-            "type": "dss_to_hdf",
+        {
+            "name": "dss_to_hdf_tsout",
+            "type": "dss_to_hdf_tsout",
+            "description": "updating regulated outflows from ressim output",
             "attributes": {
                 "base-hydraulics-directory": "hydraulics",
                 "base-hydrology-directory": "hydrology",
@@ -108,20 +107,10 @@ The action opens the source input DSS at the default path in defined in the acti
                 {
                     "name": "source",
                     "paths": {
-                        "default": "/model/{ATTR::model-name}/{ATTR::hydrology-simulation}.dss"
+                        "default": "/model/{ATTR::model-name}/simulation.dss"
                     },
                     "data_paths": {
-                        "east-fork_s090": "//east-fork_s090/FLOW-BASE//1Hour/RUN:SST/",
-                        "east-fork_s100": "//east-fork_s100/FLOW-BASE//1Hour/RUN:SST/",
-                        "east-fork_s110": "//east-fork_s110/FLOW-BASE//1Hour/RUN:SST/",
-                        "east-fork_s120": "//east-fork_s120/FLOW-BASE//1Hour/RUN:SST/",
-                        "indian-ck_s010": "//indian-ck_s010/FLOW-BASE//1Hour/RUN:SST/",
-                        "indian-ck_s020": "//indian-ck_s020/FLOW-BASE//1Hour/RUN:SST/",
-                        "indian-ck_s030": "//indian-ck_s030/FLOW-BASE//1Hour/RUN:SST/",
-                        "indian-ck_s040": "//indian-ck_s040/FLOW-BASE//1Hour/RUN:SST/",
-                        "sister-grove_s010": "//sister-grove_s010/FLOW-BASE//1Hour/RUN:SST/",
-                        "sister-grove_s020": "//sister-grove_s020/FLOW-BASE//1Hour/RUN:SST/",
-                        "wilson-ck_s010": "//wilson-ck_s010/FLOW-BASE//1Hour/RUN:SST/"
+                        "nid_tx00007": "//Lavon Outflow/Flow//1Hour/fema_ffrd-0/"
                     },
                     "store_name": "FFRD"
                 }
@@ -133,17 +122,7 @@ The action opens the source input DSS at the default path in defined in the acti
                         "default": "/model/{ATTR::model-name}/lavon.p{ATTR::plan}.hdf"
                     },
                     "data_paths": {
-                        "east-fork_s090": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_east-fork_s090_base",
-                        "east-fork_s100": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_east-fork_s100_base",
-                        "east-fork_s110": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_east-fork_s110_base",
-                        "east-fork_s120": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_east-fork_s120_base",
-                        "indian-ck_s010": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_indian-ck_s010_base",
-                        "indian-ck_s020": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_indian-ck_s020_base",
-                        "indian-ck_s030": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_indian-ck_s030_base",
-                        "indian-ck_s040": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_indian-ck_s040_base",
-                        "sister-grove_s010": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_sister-grove_s010_base",
-                        "sister-grove_s020": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_sister-grove_s020_base",
-                        "wilson-ck_s010": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: lavon BCLine: bc_wilson-ck_s010_base"
+                        "nid_tx00007": "Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/SA Conn: nid_tx00007 (Outlet TS: nid_tx00007)"
                     },
                     "store_name": "FFRD"
                 }

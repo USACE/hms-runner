@@ -87,7 +87,6 @@ The action opens the source input DSS at the default path in defined in the acti
    "stores": [
         {
             "name": "FFRD",
-            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             "store_type": "S3",
             "profile": "FFRD",
             "params": {
@@ -143,7 +142,6 @@ The action opens the source input DSS at the default path in defined in the acti
             "stores": [
                 {
                     "name": "FFRD",
-                    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
                     "store_type": "S3",
                     "profile": "FFRD",
                     "params": {

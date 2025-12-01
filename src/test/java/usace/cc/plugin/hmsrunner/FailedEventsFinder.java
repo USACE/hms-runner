@@ -11,10 +11,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class FailedEventsFinder {
-        @Test
     public static void main(String[] args){
         System.out.println("testing read failed events");
-        File folder = new File("/workspaces/hms-runner/testdata/trinity/conformance/simulations/logs/hydrology/");
+        File folder = new File("/workspaces/hms-runner/testdata/trinity/production/logs/hydrology/");
         Map<String,ArrayList<Integer>> failures = new HashMap<String,ArrayList<Integer>>();
         for(File f: folder.listFiles()){
             if(!f.isDirectory()){

@@ -1,26 +1,44 @@
 # ComputeForecastAction
-This action computes a Forecast Simulation in HEC-HMS
 
-# implementation details
+# Description
+Supports the computation of a forecast simulation in HEC-HMS.
 
-# process flow
+# Implementation Details
 
+# Process Flow
 
-1.
+# Configuration
 
-# configuration
-The configuration for this action is fully defined in the action itself, no global attributes or inputs/outputs are necessary.
-## action attributes:
-```
-		"attributes": {
+   ## Environment
 
-		}
-```
--  
+   ## Attributes
 
-## inputs
+	### Action
 
-## outputs
+    ### Global
 
+   ## Inputs
 
-## stores
+    ### Input Data Sources
+
+   ## Outputs
+
+     ### Output Data Sources
+
+# Configuration Examples
+
+# Outputs
+
+   - Format
+
+    - fields
+
+    - field definitions
+
+# Error Handling
+
+# Usage Notes
+
+# Future Enhancements
+
+# Patterns and best practices

@@ -356,10 +356,11 @@ public class ComputeSimulationAllPlacementsAction {
             //get the basin file for this storm. 
             basinFiles.getPaths().put("default",basinFiles.getPaths().get("basin-prefix") + "/" + basinPostfix + ".basin");
             try {
-                //temporary change due to improper name in the basin file @TODO fix this in greg's script that preps basinfiles
+                
                 byte[] bdata = action.get(basinFiles.getName(), "default", "");
                 String bdatastring = new String(bdata);
-                bdatastring = bdatastring.replace("1992-11-29_trinity_nov_dec_2015.sqlite", basinName.get() + ".sqlite");
+                String sqliteName = basinfilename.replace(".basin", ".sqlite");
+                bdatastring = bdatastring.replace(sqliteName, basinName.get() + ".sqlite");
                 String[] blines = bdatastring.split("\n");
                 blines[0] = "Basin: " + basinName.get();
                 linesToDisk(blines, modelOutputDestination + basinName.get() + ".basin");

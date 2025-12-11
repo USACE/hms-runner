@@ -379,7 +379,7 @@ public class ComputeSimulationAllPlacementsAction {
             } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
                 // TODO Auto-generated catch block
                 System.println(basinFiles.getPaths().get("default") + " not found.");
-                e1.printStackTrace();
+                // e1.printStackTrace();
                 System.exit(-1);
             }
 

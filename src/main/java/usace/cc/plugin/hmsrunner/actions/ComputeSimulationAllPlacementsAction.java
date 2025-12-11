@@ -360,6 +360,7 @@ public class ComputeSimulationAllPlacementsAction {
                 byte[] bdata = action.get(basinFiles.getName(), "default", "");
                 String bdatastring = new String(bdata);
                 String sqliteName = basinfilename.replace(".basin", ".sqlite");
+                System.out.println("replacing " + sqliteName + " with " + basinName + ".sqlite");
                 bdatastring = bdatastring.replace(sqliteName, basinName.get() + ".sqlite");
                 String[] blines = bdatastring.split("\n");
                 blines[0] = "Basin: " + basinName.get();

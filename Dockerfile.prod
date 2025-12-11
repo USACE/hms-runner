@@ -23,7 +23,7 @@ RUN apt update &&\
 
 WORKDIR /app
 #clone repo
-RUN git clone https://github.com/USACE/hms-runner.git
+RUN git clone https://github.com/USACE-Cloud-Compute/hms-runner.git
 WORKDIR /app/hms-runner
 #build gradle
 COPY deps/cc-java-sdk-1.0.0-all.jar /workspaces/hms-runner/deps/cc-java-sdk-1.0.0-all.jar

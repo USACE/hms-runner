@@ -47,7 +47,7 @@ public class ComputeSimulationAllPlacementsAction {
             eventNumber = Integer.parseInt(eventId);
             computeByEventNumber = true;
         }catch(NumberFormatException ex){
-            System.exit(-1);
+            //System.exit(-1);
         }
         
         //get the storm name

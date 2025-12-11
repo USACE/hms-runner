@@ -47,7 +47,7 @@ public class ComputeSimulationAllPlacementsAction {
             eventNumber = Integer.parseInt(eventId);
             computeByEventNumber = true;
         }catch(NumberFormatException ex){
-
+            System.exit(-1);
         }
         
         //get the storm name
@@ -135,12 +135,15 @@ public class ComputeSimulationAllPlacementsAction {
         } catch (InvalidDataSourceException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         } catch (DataStoreException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         }
         String stringData = new String(data);
         String[] lines = stringData.split("\n");
@@ -258,6 +261,7 @@ public class ComputeSimulationAllPlacementsAction {
         } catch (InvalidDataSourceException | IOException | DataStoreException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         }
         String gfstringData = new String(gfdata);
         String[] gflines = gfstringData.split("\n");
@@ -271,6 +275,7 @@ public class ComputeSimulationAllPlacementsAction {
         } catch (InvalidDataSourceException | IOException | DataStoreException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         }
         String mfstringData = new String(mfdata);
         String[] mflines = mfstringData.split("\n");
@@ -284,6 +289,7 @@ public class ComputeSimulationAllPlacementsAction {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(-1);
         }
         //get the basinfile prefix
         Optional<DataSource> opBasinFiles = action.getInputDataSource("basinfiles");
@@ -326,6 +332,7 @@ public class ComputeSimulationAllPlacementsAction {
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                System.exit(-1);
             }
             //write metfile locally
             String basinPostfix = e.BasinPath;
@@ -360,8 +367,8 @@ public class ComputeSimulationAllPlacementsAction {
                 byte[] bdata = action.get(basinFiles.getName(), "default", "");
                 String bdatastring = new String(bdata);
                 String sqliteName = basinfilename.replace(".basin", ".sqlite");
-                System.out.println("replacing " + sqliteName + " with " + basinName + ".sqlite");
-                bdatastring = bdatastring.replace(sqliteName, basinName.get() + ".sqlite");
+                System.out.println("replacing " + sqliteName + " with " + basinName.get());
+                bdatastring = bdatastring.replace(sqliteName, basinName.get());
                 String[] blines = bdatastring.split("\n");
                 blines[0] = "Basin: " + basinName.get();
                 linesToDisk(blines, modelOutputDestination + basinName.get() + ".basin");

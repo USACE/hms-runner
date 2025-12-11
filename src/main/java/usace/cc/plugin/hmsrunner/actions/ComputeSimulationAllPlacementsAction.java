@@ -378,7 +378,7 @@ public class ComputeSimulationAllPlacementsAction {
                 //fs.close();
             } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
                 // TODO Auto-generated catch block
-                System.println(basinFiles.getPaths().get("default") + " not found.");
+                System.out.println(basinFiles.getPaths().get("default") + " not found.");
                 // e1.printStackTrace();
                 System.exit(-1);
             }
@@ -434,7 +434,8 @@ public class ComputeSimulationAllPlacementsAction {
                     //cfs.close();
                 } catch (IOException| InvalidDataSourceException | DataStoreException e1) {
                     // TODO Auto-generated catch block
-                    e1.printStackTrace();
+                    //e1.printStackTrace();
+                    System.out.println(controlFiles.getPaths().get("default") + " not found.");
                     System.exit(-1);
                 }
 

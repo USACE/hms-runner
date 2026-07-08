@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim-bullseye AS builder
+FROM eclipse-temurin:17-jdk AS builder
 
 ENV TZ=America/New_York
 ENV GRADLE_HOME=/opt/gradle/latest
@@ -35,7 +35,7 @@ ARG HMS_HOME=HEC-HMS-4.13-beta.6
 
 RUN apt update
 RUN mkdir -p /hms
-RUN apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1 openjdk-17-jre
+RUN apt -y install libxrender1 libxtst6 libxi6 libfreetype6 libgfortran5 libfontconfig1 openjdk-17-jre ca-certificates
 RUN mkdir -p  /${HMS_HOME}
 
 COPY --from=builder /app/hms-runner/build/libs /hms

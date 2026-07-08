@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim-bullseye as dev
+FROM eclipse-temurin:17-jdk AS dev
 
 ENV TZ=America/New_York
 ENV GRADLE_HOME=/opt/gradle/latest

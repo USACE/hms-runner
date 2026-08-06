@@ -507,8 +507,10 @@ public class ComputeSimulationAllPlacementsAction {
                     System.exit(-1);
                 } catch (DataStoreException e1) {
                     
-                    System.out.println("datastre exception");
-                    System.exit(-1);
+                    System.out.println("datastore exception");
+                    e1.printStackTrace();
+                    return;//for testing on argo/nebula
+                    //System.exit(-1);
                 }
                 String olddatastring = new String(olddata);
                 String[] oldRows = olddatastring.split("\n");

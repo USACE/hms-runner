@@ -132,17 +132,17 @@ public class ComputeSimulationAllPlacementsAction {
         byte[] data = new byte[0];
         try {
             data = action.get(opStormsTable.get().getName(),"default","");
-        } catch (InvalidDataSourceException e) {
+        } catch (InvalidDataSourceException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
-        } catch (IOException e) {
+        } catch (IOException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
-        } catch (DataStoreException e) {
+        } catch (DataStoreException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
         }
         String stringData = new String(data);
@@ -192,7 +192,7 @@ public class ComputeSimulationAllPlacementsAction {
             //@ TODO fix this to not have to lowercase the st. 
 
             action.copyFileToLocal(stormCatalog.getName(), "default", modelOutputDestination + "data/" + modifiedStormName + ".dss");
-        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+        } catch (InvalidDataSourceException | IOException | DataStoreException ex) {
 
             System.out.println(modelOutputDestination + "data/" + modifiedStormName + ".dss not found");
             //e.printStackTrace();
@@ -223,9 +223,9 @@ public class ComputeSimulationAllPlacementsAction {
                     FileOutputStream fs = new FileOutputStream(outdest,false);
                     is.transferTo(fs);//igorance is bliss
                     fs.close();
-                } catch (IOException| InvalidDataSourceException | DataStoreException e) {
+                } catch (IOException| InvalidDataSourceException | DataStoreException ex) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    ex.printStackTrace();
                     System.exit(-1);
                 }
 
@@ -248,9 +248,9 @@ public class ComputeSimulationAllPlacementsAction {
                 FileOutputStream fs = new FileOutputStream(outdest,false);
                 is.transferTo(fs);//igorance is bliss
                 fs.close();
-            } catch (IOException| InvalidDataSourceException | DataStoreException e) {
+            } catch (IOException| InvalidDataSourceException | DataStoreException ex) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                ex.printStackTrace();
                 System.exit(-1);
             }
         }
@@ -258,9 +258,9 @@ public class ComputeSimulationAllPlacementsAction {
         byte[] gfdata = new byte[0];
         try {
             gfdata = action.get("hms","grid-file","");
-        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+        } catch (InvalidDataSourceException | IOException | DataStoreException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
         }
         String gfstringData = new String(gfdata);
@@ -272,9 +272,9 @@ public class ComputeSimulationAllPlacementsAction {
         byte[] mfdata = new byte[0];
         try {
             mfdata = action.get("hms","met-file","");
-        } catch (InvalidDataSourceException | IOException | DataStoreException e) {
+        } catch (InvalidDataSourceException | IOException | DataStoreException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
         }
         String mfstringData = new String(mfdata);
@@ -286,9 +286,9 @@ public class ComputeSimulationAllPlacementsAction {
         //write the updated gflines to disk.
         try {
             linesToDisk(gflines, modelOutputDestination + modelName.get() + ".grid");
-        } catch (IOException e) {
+        } catch (IOException ex) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
         }
         //get the basinfile prefix
@@ -484,7 +484,11 @@ public class ComputeSimulationAllPlacementsAction {
                 System.out.println("event failed: " +failedEvents);
                 System.exit(-1);
             }
-            
+            Optional<String> statsAndLogs =  action.getAttributes().get("update-stats-and-logs");
+            if(!statsAndLogs.isPresent()){
+                System.out.println("could not find action attribute named update-stats-and-logs");
+                return;
+            }
             System.out.println("event " + eventNumber + " updating peak files.");
             for(Integer duration : durations){
                 //get the old data

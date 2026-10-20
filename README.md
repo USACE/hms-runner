@@ -11,3 +11,6 @@ To build this project follow these steps
 6. inside the container, install java and gradle extensions
 7. add ExcessPrecip.p01.hdf and ElkMiddle.p01.hdf in testdata folder
 8. run tests.
+
+# Versions supported
+The CICD pipeline is currently set up for version 4.13.beta6 of HEC-HMS. Builds for 4.12.3 can be made if requested.
